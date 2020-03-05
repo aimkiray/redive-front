@@ -14,16 +14,42 @@
                 <span slot="title">新增复读</span>
             </el-menu-item>
         </el-menu>
-        <div>
 
-        </div>
+        <router-view></router-view>
     </el-col>
     
 </template>
 
 <script>
     export default {
-        name: "Admin"
+        name: "Admin",
+        data() {
+            return {
+
+            };
+        },
+        methods: {
+            handleSelect(key, keyPath) {
+                // eslint-disable-next-line no-console
+                console.log(key, keyPath);
+                this.$router.push({
+                    name: key
+                })
+            }
+        },
+        computed:{
+            baseUrl(){
+                return this.$store.state.baseUrl
+            },
+            activeMenu: {
+                get(){
+                    return this.$store.state.activeMenu;
+                },
+                set(value){
+                    this.$store.commit("setActiveMenu", value);
+                }
+            }
+        },
     }
 </script>
 

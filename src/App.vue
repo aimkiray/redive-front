@@ -16,7 +16,6 @@
         </el-header>
 
         <router-view></router-view>
-<!--        <VoicePlayer class="voice-player" v-bind:audio="audio"/>-->
     </div>
 </template>
 
