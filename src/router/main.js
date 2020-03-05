@@ -24,18 +24,20 @@ let router = new VueRouter({
     {
       path:'/admin',
       name: 'admin',
-      component: Admin
+      component: Admin,
+      children: [
+        {
+          path: 'voice-editor',
+          name: 'voice-editor',
+          component: VoiceEditor
+        },
+        {
+          path: 'voice-list',
+          name: 'voice-list',
+          component: VoiceList
+        }
+      ]
     },
-    {
-      path:'/voice-editor',
-      name: 'voice-editor',
-      component: VoiceEditor
-    },
-    {
-      path:'/voice-list',
-      name: 'voice-list',
-      component: VoiceList
-    }
   ]
 });
 
