@@ -5,3 +5,44 @@ body {
   margin: 0;
 }
 
+// Index page
+
+.el-header {
+  padding: 0;
+  margin: 0;
+  width: 100vw;
+  max-width:100%;
+}
+
+.el-menu--horizontal {
+  background-color: $accent-color;
+
+  .el-menu-item {
+    color: $white-text-color;
+
+    &.is-active {
+      color: $light-text-color;
+      border-bottom: 2px solid $light-text-color;
+    }
+
+    &:not(.is-disabled) {
+      &:hover {
+        background-color: $accent-dark-color;
+        color: $white-text-color;
+      }
+
+      &:focus {
+        background-color: $accent-color;
+        color: $light-text-color;
+      }
+    }
+  }
+}
+
+// Admin page
+
+.admin-container {
+  padding: 2rem 4rem;
+  width: 100vw;
+  max-width:100%;
+}

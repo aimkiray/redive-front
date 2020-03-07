@@ -5,20 +5,20 @@ Vue.use(Vuex);
 
 const store = new Vuex.Store({
     state: {
-        activeMenu: "voice-player",
-        activeTab: "voice-list",
-        editVoice: null,
+        activeMenu: "audio-player",
+        activeAdminMenu: "audio-list",
+        editAudio: null,
         baseUrl: "",
     },
     mutations: {
         setActiveMenu(state, menu) {
             state.activeMenu = menu
         },
-        setActiveTab(state, tab) {
-            state.activeTab = tab
+        setActiveAdminMenu(state, menu) {
+            state.activeAdminMenu = menu
         },
-        setEditVoice(state, voice) {
-            state.editPaper = voice
+        setEditAudio(state, audio) {
+            state.editAudio = audio
         }
     }
 });

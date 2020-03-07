@@ -1,5 +1,5 @@
 <template>
-    <div class="voice-player">
+    <div class="audio-player">
         <el-row>
             <el-col :xs="0" :sm="6"><p></p></el-col>
             <el-col :xs="24" :sm="12">
@@ -32,7 +32,7 @@
 <script>
 
     export default {
-        name: 'VoicePlayer',
+        name: 'AudioPlayer',
         data() {
             return {
                 audio: {
@@ -121,7 +121,7 @@
 </script>
 
 <style lang="scss" scoped>
-    .voice-player {
+    .audio-player {
         font-family: 'Avenir', Helvetica, Arial, sans-serif;
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;

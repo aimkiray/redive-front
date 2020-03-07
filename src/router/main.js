@@ -1,9 +1,9 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
 
-import VoicePlayer from "../components/VoicePlayer";
-import VoiceEditor from "../components/VoiceEditor";
-import VoiceList from "../components/VoiceList";
+import AudioPlayer from "../components/AudioPlayer";
+import AudioEditor from "../components/AudioEditor";
+import AudioList from "../components/AudioList";
 import Admin from "../components/Admin";
 
 import store from '../store/main'
@@ -11,49 +11,54 @@ import store from '../store/main'
 Vue.use(VueRouter);
 
 let router = new VueRouter({
-  routes:[
-    {
-      path: '/',
-      redirect: 'voice-player'
-    },
-    {
-      path:'/voice-player',
-      name: 'voice-player',
-      component: VoicePlayer
-    },
-    {
-      path:'/admin',
-      name: 'admin',
-      component: Admin,
-      children: [
+    routes: [
         {
-          path: 'voice-editor',
-          name: 'voice-editor',
-          component: VoiceEditor
+            path: '/',
+            redirect: 'audio-player'
         },
         {
-          path: 'voice-list',
-          name: 'voice-list',
-          component: VoiceList
-        }
-      ]
-    },
-  ]
+            path: '/audio-player',
+            name: 'audio-player',
+            component: AudioPlayer
+        },
+        {
+            path: '/equipment',
+            name: 'equipment',
+            component: Admin,
+            children: [
+                {
+                    path: 'audio-editor',
+                    name: 'audio-editor',
+                    component: AudioEditor
+                },
+                {
+                    path: 'audio-list',
+                    name: 'audio-list',
+                    component: AudioList
+                }
+            ]
+        },
+    ]
 });
 
 router.beforeEach((to, from, next) => {
-  if(to.name === 'voice-editor'){
-    if (!localStorage.getItem("token")){
-      next('/');
-      return
-    }
-  }
-  store.commit("setActiveMenu", to.name);
-  next()
-});
+    // eslint-disable-next-line no-console
+    console.log(to.name);
+    // Sign in to access admin page
+    // if (to.name.indexOf('admin') !== -1) {
+    //     if (!localStorage.getItem("token")) {
+    //         next('/');
+    //         return
+    //     }
+    // }
 
-// router.afterEach((to, from) => {
-//   store.commit("setActiveMenu", to.name);
-// });
+    // Identify home menu or admin tab by path
+    if (to.path.indexOf('equipment/audio') !== -1) {
+        store.commit("setActiveAdminMenu", to.name);
+    } else {
+        store.commit("setActiveMenu", to.name);
+    }
+    next()
+});
 
 export default router

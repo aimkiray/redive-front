@@ -1,22 +1,25 @@
 <template>
-    <el-col :span="12">
-        <el-menu
-                default-active="2"
-                class="el-menu-vertical-demo"
-                @open="handleOpen"
-                @close="handleClose">
-            <el-menu-item index="voice-list">
-                <i class="el-icon-document"></i>
-                <span slot="title">复读列表</span>
-            </el-menu-item>
-            <el-menu-item index="add-voice">
-                <i class="el-icon-document-add"></i>
-                <span slot="title">新增复读</span>
-            </el-menu-item>
-        </el-menu>
-
-        <router-view></router-view>
-    </el-col>
+    <el-row :gutter="10" class="admin-container">
+        <el-col :xs="24" :sm="4">
+            <el-menu
+                    :default-active="activeAdminMenu"
+                    mode="vertical"
+                    router
+                    @select="handleSelect">
+                <el-menu-item index="audio-list">
+                    <i class="el-icon-document"></i>
+                    <span slot="title">磁带盒子</span>
+                </el-menu-item>
+                <el-menu-item index="audio-editor">
+                    <i class="el-icon-document-add"></i>
+                    <span slot="title">添加磁带</span>
+                </el-menu-item>
+            </el-menu>
+        </el-col>
+        <el-col :xs="24" :sm="20">
+            <router-view></router-view>
+        </el-col>
+    </el-row>
     
 </template>
 
@@ -29,9 +32,7 @@
             };
         },
         methods: {
-            handleSelect(key, keyPath) {
-                // eslint-disable-next-line no-console
-                console.log(key, keyPath);
+            handleSelect(key) {
                 this.$router.push({
                     name: key
                 })
@@ -41,18 +42,22 @@
             baseUrl(){
                 return this.$store.state.baseUrl
             },
-            activeMenu: {
+            activeAdminMenu: {
                 get(){
-                    return this.$store.state.activeMenu;
+                    return this.$store.state.activeAdminMenu;
                 },
                 set(value){
-                    this.$store.commit("setActiveMenu", value);
+                    this.$store.commit("setActiveAdminMenu", value);
                 }
             }
         },
     }
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
+
+    .el-menu {
+        border: none;
+    }
 
 </style>

@@ -1,15 +1,15 @@
 <template>
     <div>
-
+        List
     </div>
 </template>
 
 <script>
     export default {
-        name: "VoiceEditor"
+        name: "AudioList"
     }
 </script>
 
-<style lang="scss" scoped>
+<style scoped>
 
 </style>
