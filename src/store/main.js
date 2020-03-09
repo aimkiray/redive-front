@@ -7,8 +7,6 @@ const store = new Vuex.Store({
     state: {
         activeMenu: "audio-player",
         activeAdminMenu: "audio-list",
-        editAudio: null,
-        baseUrl: "",
     },
     mutations: {
         setActiveMenu(state, menu) {
@@ -17,9 +15,6 @@ const store = new Vuex.Store({
         setActiveAdminMenu(state, menu) {
             state.activeAdminMenu = menu
         },
-        setEditAudio(state, audio) {
-            state.editAudio = audio
-        }
     }
 });
 

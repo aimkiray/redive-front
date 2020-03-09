@@ -13,9 +13,10 @@
                     <span slot="title">磁带</span>
                 </el-menu-item>
 
-                <el-menu-item @click="dialogFormVisible = true">
-                    <span slot="title">Login</span>
+                <el-menu-item @click="logOut" v-if="showLogOut">
+                    <span slot="title">注销</span>
                 </el-menu-item>
+
                 <el-menu-item @click="handleUrl('https://github.com/aimkiray/reosu')">
                     <span slot="title">Github</span>
                 </el-menu-item>
@@ -25,21 +26,6 @@
 
         <router-view></router-view>
 
-        <el-dialog title="登录" :visible.sync="dialogFormVisible">
-            <el-form :model="userForm" class="login-container">
-                <el-form-item label="用户名" :label-width="formLabelWidth">
-                    <el-input v-model="userForm.name" autocomplete="off"></el-input>
-                </el-form-item>
-                <el-form-item label="密码" :label-width="formLabelWidth">
-                    <el-input v-model="userForm.name" autocomplete="off"></el-input>
-                </el-form-item>
-                <div>test</div>
-            </el-form>
-            <div slot="footer" class="dialog-footer">
-                <el-button @click="dialogFormVisible = false">取 消</el-button>
-                <el-button type="primary" @click="dialogFormVisible = false">确 定</el-button>
-            </div>
-        </el-dialog>
     </div>
 </template>
 
@@ -48,15 +34,15 @@
         name: 'app',
         data() {
             return {
-                userForm: {
-                    username: "",
-                    password: "",
-                },
-                adminVisible: false,
-                loginVisible: false,
-                dialogFormVisible: false,
-                formLabelWidth: '80px'
+                showLogOut: false,
             };
+        },
+        created() {
+            // Check login status
+            this.checkStatus();
+        },
+        watch: {
+            '$route': 'checkStatus'
         },
         methods: {
             handleSelect(key) {
@@ -67,25 +53,31 @@
             handleUrl(url) {
                 window.open(url, '_blank')
             },
-            Login() {
-                this.$axios.get(this.baseUrl + "/login", {
-                    params: this.userForm
-                }).then(res => {
-                    if (res.data.code === 1) {
-                        localStorage.setItem("token", res.data.token);
-                        this.loginVisible = false;
-                        this.adminVisible = true;
-                        this.$message({
-                            showClose: true,
-                            message: "权限提升",
-                            type: "success"
-                        })
-                    } else {
-                        this.message = "登录失败，请检查用户名或密码";
-                        this.showAlert = true;
-                    }
-                })
-            }
+            checkStatus() {
+                if (localStorage.getItem('token')) {
+                    this.showLogOut = true
+                }
+            },
+            // checkToken() {
+            //     this.$axios.get("/check?token=" + localStorage.getItem("token"))
+            //         .then(res => {
+            //             if (res.data.code === 1) {
+            //                 this.showLogOut = true
+            //             }
+            //         }).catch(error => {
+            //             this.logOut();
+            //     })
+            // },
+            logOut() {
+                localStorage.removeItem("token");
+                this.$message({
+                    showClose: true,
+                    message: "level down!",
+                    type: "warning"
+                });
+                this.$router.push({name: 'audio-player'});
+                this.showLogOut = false;
+            },
         },
         computed: {
             baseUrl() {
@@ -103,9 +95,6 @@
     }
 </script>
 
-<style lang="scss" scoped>
-    .login-container {
-        max-width: 480px;
-    }
+<style lang="scss">
 
 </style>

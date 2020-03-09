@@ -4,7 +4,8 @@ import VueRouter from 'vue-router'
 import AudioPlayer from "../components/AudioPlayer";
 import AudioEditor from "../components/AudioEditor";
 import AudioList from "../components/AudioList";
-import Admin from "../components/Admin";
+import Equipment from "../components/Equipment";
+import User from "../components/User";
 
 import store from '../store/main'
 
@@ -22,9 +23,14 @@ let router = new VueRouter({
             component: AudioPlayer
         },
         {
+            path: '/user',
+            name: 'user',
+            component: User
+        },
+        {
             path: '/equipment',
             name: 'equipment',
-            component: Admin,
+            component: Equipment,
             children: [
                 {
                     path: 'audio-editor',
@@ -42,19 +48,20 @@ let router = new VueRouter({
 });
 
 router.beforeEach((to, from, next) => {
-    // eslint-disable-next-line no-console
-    console.log(to.name);
     // Sign in to access admin page
-    // if (to.name.indexOf('admin') !== -1) {
-    //     if (!localStorage.getItem("token")) {
-    //         next('/');
-    //         return
-    //     }
-    // }
+    if (to.name.indexOf('equipment') !== -1) {
+        // TODO Whether the token is valid
+        if (!localStorage.getItem("token")) {
+            next('/user');
+            return
+        }
+    }
 
     // Identify home menu or admin tab by path
     if (to.path.indexOf('equipment/audio') !== -1) {
         store.commit("setActiveAdminMenu", to.name);
+    } else if (to.name === "user") {
+        store.commit("setActiveMenu", "equipment");
     } else {
         store.commit("setActiveMenu", to.name);
     }

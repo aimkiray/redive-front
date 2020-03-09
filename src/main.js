@@ -11,16 +11,19 @@ import router from "./router/main"
 import 'element-ui/lib/theme-chalk/index.css'
 import './styles/index.scss'
 
+Vue.config.productionTip = false;
+
 Vue.use(VueRouter);
 Vue.use(ElementUI);
-
 Vue.use(APlayer, {
-  defaultCover: 'https://github.com/u3u.png',
-  productionTip: false,
+  defaultCover: 'https://github.com/u3u.png'
 });
 
-Vue.config.productionTip = false;
-Vue.prototype.$axios = axios;
+const instance = axios.create({
+  baseURL: 'http://localhost:2333/api',
+  timeout: 1000,
+});
+Vue.prototype.$axios = instance;
 
 new Vue({
   render: h => h(App),

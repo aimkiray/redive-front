@@ -1,5 +1,5 @@
 <template>
-    <el-row :gutter="10" class="admin-container">
+    <el-row class="admin-container">
         <el-col :xs="24" :sm="4">
             <el-menu
                     :default-active="activeAdminMenu"
@@ -20,16 +20,14 @@
             <router-view></router-view>
         </el-col>
     </el-row>
-    
+
 </template>
 
 <script>
     export default {
-        name: "Admin",
+        name: "Equipment",
         data() {
-            return {
-
-            };
+            return {};
         },
         methods: {
             handleSelect(key) {
@@ -38,19 +36,19 @@
                 })
             }
         },
-        computed:{
-            baseUrl(){
-                return this.$store.state.baseUrl
-            },
+        computed: {
             activeAdminMenu: {
-                get(){
+                get() {
                     return this.$store.state.activeAdminMenu;
                 },
-                set(value){
+                set(value) {
                     this.$store.commit("setActiveAdminMenu", value);
                 }
             }
         },
+        created() {
+            this.$router.push({name: "audio-list"})
+        }
     }
 </script>
 
