@@ -6,7 +6,7 @@ Vue.use(Vuex);
 const store = new Vuex.Store({
     state: {
         activeMenu: "audio-player",
-        activeAdminMenu: "audio-list",
+        activeAdminMenu: "audio-table",
     },
     mutations: {
         setActiveMenu(state, menu) {

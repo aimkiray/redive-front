@@ -13,12 +13,12 @@
                     <span slot="title">磁带</span>
                 </el-menu-item>
 
-                <el-menu-item @click="logOut" v-if="showLogOut">
-                    <span slot="title">注销</span>
+                <el-menu-item class="top-menu-right" @click="handleUrl('https://github.com/aimkiray/reosu')">
+                    <span slot="title">Github</span>
                 </el-menu-item>
 
-                <el-menu-item @click="handleUrl('https://github.com/aimkiray/reosu')">
-                    <span slot="title">Github</span>
+                <el-menu-item class="top-menu-right" @click="logOut" v-if="showLogOut">
+                    <span slot="title">注销</span>
                 </el-menu-item>
 
             </el-menu>
@@ -38,6 +38,7 @@
             };
         },
         created() {
+            this.$router.push({name: this.activeMenu})
             // Check login status
             this.checkStatus();
         },
@@ -55,7 +56,16 @@
             },
             checkStatus() {
                 if (localStorage.getItem('token')) {
-                    this.showLogOut = true
+                    // this.showLogOut = true
+                    this.$axios.get("/check?token=" + localStorage.getItem("token"))
+                        .then(res => {
+                            if (res.data.code === 1) {
+                                this.showLogOut = true
+                            }
+                            // eslint-disable-next-line no-unused-vars
+                        }).catch( error => {
+                        this.logOut();
+                    })
                 }
             },
             // checkToken() {
@@ -65,7 +75,7 @@
             //                 this.showLogOut = true
             //             }
             //         }).catch(error => {
-            //             this.logOut();
+            //         this.logOut();
             //     })
             // },
             logOut() {
@@ -73,15 +83,15 @@
                 this.$message({
                     showClose: true,
                     message: "level down!",
-                    type: "warning"
+                    type: "info"
                 });
                 this.$router.push({name: 'audio-player'});
                 this.showLogOut = false;
             },
         },
         computed: {
-            baseUrl() {
-                return this.$store.state.baseUrl
+            baseURL() {
+                return this.$axios.defaults.baseURL
             },
             activeMenu: {
                 get() {
@@ -95,6 +105,9 @@
     }
 </script>
 
-<style lang="scss">
+<style lang="scss" scoped>
+    .top-menu-right {
+        float: right !important;
+    }
 
 </style>

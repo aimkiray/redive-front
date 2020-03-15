@@ -1,18 +1,22 @@
 <template>
-    <el-row class="admin-container">
+    <el-row class="admin-container" :gutter="10">
         <el-col :xs="24" :sm="4">
             <el-menu
                     :default-active="activeAdminMenu"
                     mode="vertical"
                     router
                     @select="handleSelect">
-                <el-menu-item index="audio-list">
+                <el-menu-item index="audio-table">
                     <i class="el-icon-document"></i>
                     <span slot="title">磁带盒子</span>
                 </el-menu-item>
                 <el-menu-item index="audio-editor">
                     <i class="el-icon-document-add"></i>
-                    <span slot="title">添加磁带</span>
+                    <span slot="title">新增磁带</span>
+                </el-menu-item>
+                <el-menu-item index="batch-import">
+                    <i class="el-icon-magic-stick"></i>
+                    <span slot="title">批量导入</span>
                 </el-menu-item>
             </el-menu>
         </el-col>
@@ -47,7 +51,7 @@
             }
         },
         created() {
-            this.$router.push({name: "audio-list"})
+            this.$router.push({name: this.activeAdminMenu})
         }
     }
 </script>

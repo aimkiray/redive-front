@@ -3,7 +3,8 @@ import VueRouter from 'vue-router'
 
 import AudioPlayer from "../components/AudioPlayer";
 import AudioEditor from "../components/AudioEditor";
-import AudioList from "../components/AudioList";
+import AudioTable from "../components/AudioTable";
+import BatchImport from "../components/BatchImport";
 import Equipment from "../components/Equipment";
 import User from "../components/User";
 
@@ -38,9 +39,14 @@ let router = new VueRouter({
                     component: AudioEditor
                 },
                 {
-                    path: 'audio-list',
-                    name: 'audio-list',
-                    component: AudioList
+                    path: 'audio-table',
+                    name: 'audio-table',
+                    component: AudioTable
+                },
+                {
+                    path: 'batch-import',
+                    name: 'batch-import',
+                    component: BatchImport
                 }
             ]
         },
@@ -58,7 +64,7 @@ router.beforeEach((to, from, next) => {
     }
 
     // Identify home menu or admin tab by path
-    if (to.path.indexOf('equipment/audio') !== -1) {
+    if (to.path.indexOf('equipment/') !== -1) {
         store.commit("setActiveAdminMenu", to.name);
     } else if (to.name === "user") {
         store.commit("setActiveMenu", "equipment");
