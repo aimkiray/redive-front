@@ -62,7 +62,7 @@
                             if (res.data.code === 1) {
                                 this.$message({
                                     showClose: true,
-                                    message: "导入完成，如果有失败歌曲会在下面列出。",
+                                    message: "导入完成，如果有歌曲导入失败，会在下方列出。",
                                     type: "success"
                                 });
                             } else {
@@ -92,7 +92,7 @@
                         this.errorData = res.data.error;
                         this.$message({
                             showClose: true,
-                            message: "导入完成，如果有失败歌曲会在下面列出。",
+                            message: "导入完成，如果有歌曲导入失败，会在下方列出。",
                             type: "success"
                         });
                     }
@@ -101,11 +101,6 @@
         },
         mounted() {
             this.timer = setInterval(this.getBatchStatus, 1000);
-        },
-        watch: {
-            errorData: function () {
-
-            }
         },
         beforeDestroy() {
             clearInterval(this.timer);
