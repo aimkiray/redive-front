@@ -16,10 +16,17 @@
             </el-select>
         </el-form-item>
         <el-form-item>
-            <el-button type="primary" @click="onSubmit" :disabled="batch.total !== '0'">导入</el-button>
+            <el-button type="primary" @click="onSubmit" :disabled="batchStatus.total !== '0'">导入</el-button>
         </el-form-item>
-        <div class="batch-form-status" v-show="batch.total !== '0'">Process: {{ batch.count }}/{{ batch.total }}
-            <br/>Current: {{ batch.current }}
+        <div class="batch-form-status" v-if="batchStatus && batchStatus.total !== '0'">
+            Process: {{ batchStatus.count }}/{{ batchStatus.total }}
+            <br/>
+            Current: {{ batchStatus.current }}
+        </div>
+        <div class="batch-form-status" v-if="errorData">
+            <p v-for="err in errorData" v-bind:key="err.id">
+                {{ err.id }}, {{ err.name }}, {{ err.type }}
+            </p>
         </div>
     </el-form>
 
@@ -32,18 +39,21 @@
             return {
                 formBatch: {
                     id: "",
-                    br: "999000"
+                    br: "999000",
                 },
-                batch: {
+                batchStatus: {
                     count: "0",
                     total: "0",
-                    current: ""
+                    current: "",
+                    status: "",
                 },
+                errorData: {},
                 timer: "",
             }
         },
         methods: {
             onSubmit() {
+                this.errorData = {};
                 this.$refs["formBatch"].validate((valid) => {
                     if (valid) {
                         this.$axios.get("/batch", {
@@ -52,7 +62,7 @@
                             if (res.data.code === 1) {
                                 this.$message({
                                     showClose: true,
-                                    message: "导入完成",
+                                    message: "导入完成，如果有失败歌曲会在下面列出。",
                                     type: "success"
                                 });
                             } else {
@@ -62,11 +72,12 @@
                                     type: "error"
                                 })
                             }
+                            // eslint-disable-next-line no-unused-vars
                         }).catch(error => {
                             this.$message({
                                 showClose: true,
-                                message: "你的土豆去世了。" + error,
-                                type: "error"
+                                message: "处理中。如果没有进度提示，请检查你的土豆。",
+                                type: "info"
                             })
                         })
                     } else {
@@ -74,14 +85,27 @@
                     }
                 });
             },
-            batchStatus() {
+            getBatchStatus() {
                 this.$axios.get("/batch/status").then(res => {
-                    this.batch = res.data.data
+                    this.batchStatus = res.data.data;
+                    if (this.batchStatus.status === "1") {
+                        this.errorData = res.data.error;
+                        this.$message({
+                            showClose: true,
+                            message: "导入完成，如果有失败歌曲会在下面列出。",
+                            type: "success"
+                        });
+                    }
                 })
-            }
+            },
         },
         mounted() {
-            this.timer = setInterval(this.batchStatus, 1000);
+            this.timer = setInterval(this.getBatchStatus, 1000);
+        },
+        watch: {
+            errorData: function () {
+
+            }
         },
         beforeDestroy() {
             clearInterval(this.timer);
