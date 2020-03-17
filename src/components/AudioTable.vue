@@ -27,13 +27,13 @@
             <template slot-scope="scope">
                 <el-popover trigger="hover" placement="top">
                     <p v-if="scope.row.audio !== ''">
-                        Audio: {{ getDownloadURL(scope.row.name, "audio", scope.row.audio)}}
+                        Audio: {{ getDownloadURL(scope.row.id, "audio", scope.row.audio) }}
                     </p>
                     <p v-if="scope.row.cover !== ''">
-                        Cover: {{ getDownloadURL(scope.row.name, "cover", scope.row.cover) }}
+                        Cover: {{ getDownloadURL(scope.row.id, "cover", scope.row.cover) }}
                     </p>
                     <p v-if="scope.row.lrc !== ''">
-                        Lyric: {{ getDownloadURL(scope.row.name, "lrc", scope.row.lrc) }}
+                        Lyric: {{ getDownloadURL(scope.row.id, "lrc", scope.row.lrc) }}
                     </p>
                     <div slot="reference" class="name-wrapper">
                         <el-tag v-if="scope.row.audio !== ''" style="margin-right: 10px" size="medium">audio</el-tag>
@@ -64,7 +64,7 @@
                 tableData: null
             }
         },
-        created() {
+        mounted() {
             this.$axios.get("/audio?token=" + localStorage.getItem("token")).then(res => {
                 this.tableData = res.data.data;
                 this.formLoading = false
@@ -87,10 +87,10 @@
                     this.$message({message: "非法操作。" + err, type: 'error'});
                 })
             },
-            getDownloadURL(name, type, path) {
+            getDownloadURL(id, type, path) {
                 if (path !== "") {
                     if (path.indexOf("http") === -1) {
-                        return this.baseURL + "/audio/download/" + name + "/" + type + "?token=" +
+                        return this.baseURL + "/audio/download/" + id + "/" + type + "?token=" +
                             localStorage.getItem("token")
                     } else {
                         return path

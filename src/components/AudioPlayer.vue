@@ -1,9 +1,10 @@
 <template>
     <div class="audio-player">
+        <aplayer @timeupdate="timeUpdate" :audio="audio" :lrcType="3" ref="aplayer" fixed/>
+
         <el-row>
             <el-col :xs="0" :sm="6"><p></p></el-col>
             <el-col :xs="24" :sm="12">
-                <aplayer class="grid-content" @timeupdate="timeUpdate" :audio="audio" :lrcType="3" ref="aplayer"/>
                 <div class="grid-content">
                     <el-button round v-on:click="playCurrent">Play</el-button>
                     <el-button round v-on:click="pauseCurrent">Pause</el-button>
@@ -17,31 +18,21 @@
                     </el-button>
                 </div>
             </el-col>
-            <el-col :xs="0" :sm="6"><p></p></el-col>
         </el-row>
-        <el-row>
-            <el-col :xs="0" :sm="6"><p></p></el-col>
-            <el-col :xs="24" :sm="12">
 
-            </el-col>
-            <el-col :xs="0" :sm="6"><p></p></el-col>
-        </el-row>
     </div>
 </template>
 
 <script>
+    // import WaveSurfer from 'wavesurfer.js';
+    // import TimelinePlugin from 'wavesurfer.js/dist/plugin/wavesurfer.timeline.min.js';
+    // import MinimapPlugin from 'wavesurfer.js/dist/plugin/wavesurfer.minimap.min.js';
 
     export default {
         name: 'AudioPlayer',
         data() {
             return {
-                audio: {
-                    name: '紫陽花、まばたき、梅雨の日。',
-                    artist: '000',
-                    url: 'http://ask.debuff.top:45499/music/UFO-Tsubaki.mp3',
-                    cover: 'http://ask.debuff.top:45499/music/UFO-Tsubaki.jpg', // prettier-ignore
-                    lrc: 'http://ask.debuff.top:45499/music/UFO-Tsubaki.lrc',
-                },
+                audio: [],
                 aMark: [],
                 bMark: [],
                 isRecord: 0,
@@ -50,6 +41,26 @@
                 realPlayTime: 0,
                 lastPlayTime: 0,
             }
+        },
+        mounted() {
+            this.$axios.get("/audio").then(res => {
+                if (res.data.code === 1) {
+                    const audioData = res.data.data;
+                    // for ()
+                    audioData.audio = this.getDownloadURL(audioData.id, "audio", audioData.audio);
+                    audioData.cover = this.getDownloadURL(audioData.id, "cover", audioData.cover);
+                    audioData.lrc = this.getDownloadURL(audioData.id, "lrc", audioData.lrc);
+                    this.audio = audioData
+                } else {
+                    this.$message({
+                        showClose: true,
+                        message: "载入失败，请检查你的土豆。",
+                        type: "error"
+                    });
+                }
+            }).catch(err => {
+                this.$message({showClose: true, message: '你的土豆被吃了。' + err, type: 'error'});
+            });
         },
         methods: {
             playCurrent: function () {
@@ -115,6 +126,17 @@
                 this.loopIndex = index;
                 this.isLoop = 1;
             },
+            getDownloadURL(id, type, path) {
+                if (path !== "") {
+                    if (path.indexOf("http") === -1) {
+                        return this.baseURL + "/audio/download/" + id + "/" + type + "?token=" +
+                            localStorage.getItem("token")
+                    } else {
+                        return path
+                    }
+                }
+                return ""
+            }
         },
     };
 

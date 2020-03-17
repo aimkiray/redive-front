@@ -16,7 +16,7 @@ Vue.config.productionTip = false;
 Vue.use(VueRouter);
 Vue.use(ElementUI);
 Vue.use(APlayer, {
-  defaultCover: 'https://github.com/u3u.png'
+  defaultCover: 'https://avatars2.githubusercontent.com/u/28665259'
 });
 
 const instance = axios.create({

@@ -49,6 +49,7 @@
                 },
                 errorData: {},
                 timer: "",
+                isImporting: 0,
             }
         },
         methods: {
@@ -56,7 +57,10 @@
                 this.errorData = {};
                 this.$refs["formBatch"].validate((valid) => {
                     if (valid) {
-                        this.$axios.get("/batch", {
+                        // 定时查询进度
+                        this.timer = setInterval(this.getBatchStatus, 1000);
+                        // 开始批量导入
+                        this.$axios.get("/batch?token=" + this.getToken, {
                             params: this.formBatch
                         }).then(res => {
                             if (res.data.code === 1) {
@@ -89,6 +93,10 @@
                 this.$axios.get("/batch/status").then(res => {
                     this.batchStatus = res.data.data;
                     if (this.batchStatus.status === "1") {
+                        // 清除定时查询任务
+                        clearInterval(this.timer);
+                        this.timer = "";
+                        // 错误消息
                         this.errorData = res.data.error;
                         this.$message({
                             showClose: true,
@@ -98,9 +106,9 @@
                     }
                 })
             },
-        },
-        mounted() {
-            this.timer = setInterval(this.getBatchStatus, 1000);
+            getToken() {
+                return localStorage.getItem("token")
+            },
         },
         beforeDestroy() {
             clearInterval(this.timer);

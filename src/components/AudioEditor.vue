@@ -26,7 +26,7 @@
                     ref="upload"
                     drag
                     :action="baseURL + '/audio/upload?token=' + getToken"
-                    :data="audioName"
+                    :data="fileForm"
                     :on-success="resetFile"
                     :on-error="resetForm"
                     :auto-upload="false"
@@ -63,6 +63,9 @@
                 audioForm: {
                     name: "", artist: "", audio: "", cover: "", lrc: "", tlrc: "", from: "upload", others: "",
                 },
+                fileForm: {
+                    id: "", name: "",
+                },
                 rules: {
                     name: [
                         {validator: validateName, trigger: 'blur'}
@@ -84,9 +87,11 @@
                                         type: 'info'
                                     });
                                     // Then upload the audio file
+                                    this.fileForm.id = res.data.id;
+                                    this.fileForm.name = this.audioForm.name;
                                     this.$refs.upload.submit()
                                 } else {
-                                    this.$message({showClose: true, message: '载入失败，请检查你的土豆状态', type: 'error'});
+                                    this.$message({showClose: true, message: '载入失败，请检查你的土豆。', type: 'error'});
                                 }
                             })
                             .catch(err => {
@@ -99,8 +104,11 @@
                 });
             },
             resetForm() {
-                this.form = {
+                this.audioForm = {
                     name: "", artist: "", audio: "", cover: "", lrc: "", tlrc: "", from: "upload", others: "",
+                };
+                this.fileForm = {
+                    id: "", name: "",
                 };
                 this.$refs.upload.clearFiles();
                 // TODO delete file
