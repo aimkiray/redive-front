@@ -43,7 +43,7 @@
             this.checkStatus();
         },
         watch: {
-            '$route': 'checkStatus'
+            '$route': 'checkToken'
         },
         methods: {
             handleSelect(key) {
@@ -63,21 +63,16 @@
                                 this.showLogOut = true
                             }
                             // eslint-disable-next-line no-unused-vars
-                        }).catch( error => {
+                        }).catch(error => {
                         this.logOut();
                     })
                 }
             },
-            // checkToken() {
-            //     this.$axios.get("/check?token=" + localStorage.getItem("token"))
-            //         .then(res => {
-            //             if (res.data.code === 1) {
-            //                 this.showLogOut = true
-            //             }
-            //         }).catch(error => {
-            //         this.logOut();
-            //     })
-            // },
+            checkToken() {
+                if (localStorage.getItem('token')) {
+                    this.showLogOut = true
+                }
+            },
             logOut() {
                 localStorage.removeItem("token");
                 this.$message({

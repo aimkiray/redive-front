@@ -1,7 +1,10 @@
 <template>
     <el-table
             :data="tableData"
-            v-loading=""
+            v-loading="formLoading"
+            element-loading-text="请稍等，毕竟我只是一个土豆"
+            element-loading-spinner="el-icon-loading"
+            element-loading-background="white"
             style="width: 100%">
         <el-table-column
                 label="日期">
@@ -25,22 +28,17 @@
         <el-table-column
                 label="素材">
             <template slot-scope="scope">
-                <el-popover trigger="hover" placement="top">
-                    <p v-if="scope.row.audio !== ''">
-                        Audio: {{ getDownloadURL(scope.row.id, "audio", scope.row.audio) }}
-                    </p>
-                    <p v-if="scope.row.cover !== ''">
-                        Cover: {{ getDownloadURL(scope.row.id, "cover", scope.row.cover) }}
-                    </p>
-                    <p v-if="scope.row.lrc !== ''">
-                        Lyric: {{ getDownloadURL(scope.row.id, "lrc", scope.row.lrc) }}
-                    </p>
-                    <div slot="reference" class="name-wrapper">
-                        <el-tag v-if="scope.row.audio !== ''" style="margin-right: 10px" size="medium">audio</el-tag>
-                        <el-tag v-if="scope.row.cover !== ''" style="margin-right: 10px" size="medium">cover</el-tag>
-                        <el-tag v-if="scope.row.lrc !== ''" size="medium">lrc</el-tag>
-                    </div>
-                </el-popover>
+                <div slot="reference" class="name-wrapper">
+                    <el-tag v-if="scope.row.audio !== ''" style="margin-right: 10px" size="medium">
+                        <a :href="getDownloadURL(scope.row.id, 'audio', scope.row.audio)" target="_blank">Audio</a>
+                    </el-tag>
+                    <el-tag v-if="scope.row.cover !== ''" style="margin-right: 10px" size="medium">
+                        <a :href="getDownloadURL(scope.row.id, 'cover', scope.row.cover)" target="_blank">Cover</a>
+                    </el-tag>
+                    <el-tag v-if="scope.row.lrc !== ''" size="medium">
+                        <a :href="getDownloadURL(scope.row.id, 'lrc', scope.row.lrc)" target="_blank">Lyric</a>
+                    </el-tag>
+                </div>
             </template>
         </el-table-column>
         <el-table-column label="操作">
@@ -65,7 +63,7 @@
             }
         },
         mounted() {
-            this.$axios.get("/audio?token=" + localStorage.getItem("token")).then(res => {
+            this.$axios.get("/audio").then(res => {
                 this.tableData = res.data.data;
                 this.formLoading = false
             })
@@ -77,7 +75,7 @@
         },
         methods: {
             handleDelete(index, row) {
-                this.$axios.delete("/audio/" + row.name + "?token=" + localStorage.getItem("token"))
+                this.$axios.delete("/audio/" + row.id + "?token=" + localStorage.getItem("token"))
                     .then(res => {
                         if (res.data.code === 1) {
                             this.$message({message: '删除成功', type: 'success'});
@@ -90,8 +88,7 @@
             getDownloadURL(id, type, path) {
                 if (path !== "") {
                     if (path.indexOf("http") === -1) {
-                        return this.baseURL + "/audio/download/" + id + "/" + type + "?token=" +
-                            localStorage.getItem("token")
+                        return this.baseURL + "/audio/download/" + id + "/" + type
                     } else {
                         return path
                     }

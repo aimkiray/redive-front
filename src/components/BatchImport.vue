@@ -61,28 +61,20 @@
                         this.timer = setInterval(this.getBatchStatus, 1000);
                         // 开始批量导入
                         this.$axios.get("/batch?token=" + this.getToken, {
-                            params: this.formBatch
-                        }).then(res => {
-                            if (res.data.code === 1) {
-                                this.$message({
-                                    showClose: true,
-                                    message: "导入完成，如果有歌曲导入失败，会在下方列出。",
-                                    type: "success"
-                                });
-                            } else {
-                                this.$message({
-                                    showClose: true,
-                                    message: "导入失败，请重试。" + res.data.message,
-                                    type: "error"
-                                })
-                            }
+                            params: this.formBatch,
+                            timeout: 0
                             // eslint-disable-next-line no-unused-vars
-                        }).catch(error => {
-                            this.$message({
-                                showClose: true,
-                                message: "处理中。如果没有进度提示，请检查你的土豆。",
-                                type: "info"
-                            })
+                        }).then(data => {
+                            if (data.data.code === 0) {
+                                // 清除定时查询任务
+                                clearInterval(this.timer);
+                                this.timer = "";
+                            }
+                        });
+                        this.$message({
+                            showClose: true,
+                            message: "处理中。如果没有进度提示，请检查你的土豆。",
+                            type: "info"
                         })
                     } else {
                         return false;
@@ -124,8 +116,8 @@
     }
 
     .batch-form-tips {
-        padding-bottom: 1rem;
-        font-size: 14px;
+        padding-bottom: 2rem;
+        /*font-size: 14px;*/
         color: #606266;
     }
 
