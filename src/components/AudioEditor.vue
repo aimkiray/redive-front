@@ -163,7 +163,6 @@
                     id: "", name: "",
                 };
                 this.$refs.upload.clearFiles();
-                // TODO delete file
             },
             resetFile() {
                 this.$message({
