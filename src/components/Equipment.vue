@@ -1,5 +1,5 @@
 <template>
-    <el-row class="admin-container" :gutter="10">
+    <el-row class="admin-container" :gutter="20">
         <el-col :xs="24" :sm="4">
             <el-menu
                     :default-active="activeAdminMenu"
@@ -10,13 +10,17 @@
                     <i class="el-icon-document"></i>
                     <span slot="title">磁带盒子</span>
                 </el-menu-item>
+                <el-menu-item index="playlist-editor">
+                    <i class="el-icon-edit"></i>
+                    <span slot="title">管理磁带</span>
+                </el-menu-item>
                 <el-menu-item index="audio-editor">
                     <i class="el-icon-document-add"></i>
-                    <span slot="title">新增磁带</span>
+                    <span slot="title">录制磁带</span>
                 </el-menu-item>
                 <el-menu-item index="batch-import">
                     <i class="el-icon-magic-stick"></i>
-                    <span slot="title">批量导入</span>
+                    <span slot="title">批发磁带</span>
                 </el-menu-item>
             </el-menu>
         </el-col>

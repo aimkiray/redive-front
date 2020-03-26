@@ -2,7 +2,7 @@
     <el-form :inline="true" :model="formBatch" ref="formBatch" class="batch-form-container">
         <div class="batch-form-tips">
             <i class="el-icon-question"></i>
-            从网易云导入歌单。打开网易云音乐网页版，进入歌单页面，从地址栏获取歌单ID。
+            从云音乐导入歌单。打开云音乐网页版，进入歌单页面，从地址栏获取歌单ID。
         </div>
         <el-form-item label="歌单ID">
             <el-input v-model="formBatch.id" placeholder="ID"></el-input>

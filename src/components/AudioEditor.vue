@@ -5,69 +5,81 @@
                  label-position="right" label-width="40px">
             <div class="audio-form-tips">
                 <i class="el-icon-question"></i>
-                上传本地音频到服务器。只有名字是必填参数，其他随意，但最好同时上传MP3格式音频文件（毕竟我只是个没有感情的复读机。
+                上传本地音频到服务器。磁带和名字是必填参数，其他随意，但最好同时上传MP3格式音频文件（毕竟我只是个没有感情的复读机。
             </div>
-            <el-form-item label="歌单" prop="playlist">
-                <el-select v-model="audioForm.playlist" placeholder="请选择歌单">
-                    <el-option label="区域一" value="shanghai"></el-option>
-                </el-select>
-                <el-button @click.prevent="removeDomain(domain)">New</el-button>
-            </el-form-item>
-            <el-form-item label="名字" prop="name">
-                <el-input v-model="audioForm.name" placeholder="展示名称"></el-input>
-            </el-form-item>
-            <el-form-item label="作者">
-                <el-input v-model="audioForm.artist" placeholder="音频作者"></el-input>
-            </el-form-item>
-            <el-form-item label="封面">
-                <el-input v-model="audioForm.cover" placeholder="封面直链" disabled></el-input>
-            </el-form-item>
-            <el-form-item label="歌词">
-                <el-input v-model="audioForm.lrc" placeholder="歌词直链" disabled></el-input>
-            </el-form-item>
-            <el-form-item label="音频">
-                <el-input v-model="audioForm.audio" placeholder="音频直链" disabled></el-input>
-            </el-form-item>
-            <el-form-item label="本体">
-                <el-upload
-                        ref="upload"
-                        drag
-                        :action="baseURL + '/audio/upload?token=' + getToken"
-                        :data="fileForm"
-                        :on-success="resetFile"
-                        :on-error="resetForm"
-                        :auto-upload="false"
-                        multiple
-                >
-                    <i class="el-icon-upload"></i>
-                    <div class="el-upload__text">将文件拖过来，或<em>点咱上传</em></div>
-                </el-upload>
-                <el-alert
-                        title="只能上传mp3/lrc/jpg/png文件，封面&歌词&本体可以一起上传。如果同时存在直链，则直链将被覆盖。"
-                        type="warning">
-                </el-alert>
-            </el-form-item>
+            <el-row :gutter="20">
+                <el-col :xs="20" :sm="9">
+                    <el-form-item label="磁带" prop="playlist">
+                        <el-select style="display: block" v-model="audioForm.playlist" placeholder="录入磁带">
+                            <el-option
+                                    v-for="item in this.playlistData"
+                                    :key="item.id"
+                                    :label="item.name"
+                                    :value="item.id">
+                            </el-option>
+                        </el-select>
+                    </el-form-item>
+                </el-col>
+                <el-col :xs="4" :sm="3">
+                    <el-button style="float: right" @click="redirect('playlist-editor')">
+                        <i class="el-icon-plus"></i>
+                    </el-button>
+                </el-col>
+            </el-row>
+
+            <el-row :gutter="20">
+                <el-col :xs="24" :sm="12">
+                    <el-form-item label="名字" prop="name">
+                        <el-input v-model="audioForm.name" placeholder="展示名称"></el-input>
+                    </el-form-item>
+                </el-col>
+
+                <el-col :xs="24" :sm="12">
+                    <el-form-item label="作者">
+                        <el-input v-model="audioForm.artist" placeholder="音频作者"></el-input>
+                    </el-form-item>
+                </el-col>
+            </el-row>
+            <!--            <el-form-item label="封面">-->
+            <!--                <el-input v-model="audioForm.cover" placeholder="封面直链" disabled></el-input>-->
+            <!--            </el-form-item>-->
+            <!--            <el-form-item label="歌词">-->
+            <!--                <el-input v-model="audioForm.lrc" placeholder="歌词直链" disabled></el-input>-->
+            <!--            </el-form-item>-->
+            <!--            <el-form-item label="音频">-->
+            <!--                <el-input v-model="audioForm.audio" placeholder="音频直链" disabled></el-input>-->
+            <!--            </el-form-item>-->
+            <el-row :gutter="20">
+                <el-col :xs="24" :sm="12">
+                    <el-form-item label="本体">
+                        <el-upload
+                                ref="upload"
+                                drag
+                                :action="baseURL + '/audio/upload?token=' + getToken"
+                                :data="fileForm"
+                                :on-success="resetFile"
+                                :on-error="resetForm"
+                                :auto-upload="false"
+                                multiple
+                                style="display: block"
+                        >
+                            <i class="el-icon-upload"></i>
+                            <div class="el-upload__text">将文件拖过来，或<em>点咱上传</em></div>
+                        </el-upload>
+                        <el-alert
+                                title="只能上传mp3/lrc/jpg/png文件，封面&歌词&本体可以一起上传。歌词翻译的文件名需包含'trans'字样。"
+                                type="warning"
+                                style="margin-top: 10px">
+                        </el-alert>
+                    </el-form-item>
+                </el-col>
+            </el-row>
+
             <el-form-item>
                 <el-button type="primary" @click="submitForm('audioForm')">添加</el-button>
                 <el-button @click="resetForm">取消</el-button>
             </el-form-item>
         </el-form>
-
-        <el-dialog title="新增歌单" :visible.sync="dialogFormVisible">
-            <el-form :model="plForm" class="login-container">
-                <el-form-item label="名字">
-                    <el-input v-model="plForm.name"></el-input>
-                </el-form-item>
-                <el-form-item label="简介">
-                    <el-input v-model="plForm.desc" ></el-input>
-                </el-form-item>
-                <div>test</div>
-            </el-form>
-            <div slot="footer" class="dialog-footer">
-                <el-button @click="dialogFormVisible = false">取 消</el-button>
-                <el-button type="primary" @click="dialogFormVisible = false">确 定</el-button>
-            </div>
-        </el-dialog>
 
     </div>
 </template>
@@ -96,18 +108,24 @@
                     others: "",
                 },
                 fileForm: {
-                    id: "", name: "",
-                },
-                plForm: {
-                    name: "", desc: ""
+                    id: "", name: "", artist: ""
                 },
                 audioRules: {
                     name: [
                         {validator: validateName, trigger: 'blur'}
                     ]
                 },
-                dialogFormVisible: false,
+                playlistData: [],
             }
+        },
+        mounted() {
+            this.$axios.get("/playlist").then(res => {
+                if (res.data.code === 1 && res.data.data) {
+                    this.playlistData = res.data.data;
+                }
+            }).catch(err => {
+                this.$message({message: '发生异常，请刷新你的土豆。' + err, type: 'error'});
+            });
         },
         methods: {
             submitForm(formName) {
@@ -125,6 +143,7 @@
                                     // Then upload the audio file
                                     this.fileForm.id = res.data.id;
                                     this.fileForm.name = this.audioForm.name;
+                                    this.fileForm.artist = this.audioForm.artist;
                                     this.$refs.upload.submit()
                                 } else {
                                     this.$message({
@@ -135,7 +154,7 @@
                                 }
                             })
                             .catch(err => {
-                                this.resetForm();
+                                // this.resetForm();
                                 this.$message({
                                     showClose: true,
                                     message: '你的土豆被吃了。' + err,
@@ -152,7 +171,7 @@
                     playlist: "",
                     name: "",
                     artist: "",
-                    audio: "",
+                    audioList: "",
                     cover: "",
                     lrc: "",
                     tlrc: "",
@@ -175,6 +194,9 @@
                     this.$router.push({name: "audio-table"})
                 }, 10000)
             },
+            redirect(key) {
+                this.$router.push({name: key})
+            }
         },
         computed: {
             audioName() {

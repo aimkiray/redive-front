@@ -4,6 +4,7 @@ import VueRouter from 'vue-router'
 import AudioPlayer from "../components/AudioPlayer";
 import AudioEditor from "../components/AudioEditor";
 import AudioTable from "../components/AudioTable";
+import Playlist from "../components/Playlist";
 import BatchImport from "../components/BatchImport";
 import Equipment from "../components/Equipment";
 import User from "../components/User";
@@ -47,6 +48,11 @@ let router = new VueRouter({
                     path: 'batch-import',
                     name: 'batch-import',
                     component: BatchImport
+                },
+                {
+                    path: 'playlist-editor',
+                    name: 'playlist-editor',
+                    component: Playlist
                 }
             ]
         },

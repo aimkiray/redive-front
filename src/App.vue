@@ -38,7 +38,7 @@
             };
         },
         created() {
-            this.$router.push({name: this.activeMenu})
+            this.$router.push({name: this.activeMenu});
             // Check login status
             this.checkStatus();
         },

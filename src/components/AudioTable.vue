@@ -1,7 +1,7 @@
 <template>
     <div>
-        <span style="padding: 0 10px 0 10px">歌单</span>
-        <el-select v-model="playlistID" @change="getPlaylist" placeholder="请选择歌单">
+        <span style="padding: 0 10px 0 10px">磁带</span>
+        <el-select v-model="playlistID" @change="getPlaylist" placeholder="查看磁带内容">
             <el-option
                     v-for="item in this.playlistData"
                     :key="item.id"
@@ -109,11 +109,11 @@
                 this.$axios.delete("/audio/" + row.id + "?token=" + localStorage.getItem("token"))
                     .then(res => {
                         if (res.data.code === 1) {
-                            this.$message({message: '删除成功', type: 'success'});
+                            this.$message({message: '再见了您嘞。', type: 'success'});
                             this.tableData.splice(index, 1)
                         }
                     }).catch(err => {
-                    this.$message({message: "非法操作。" + err, type: 'error'});
+                    this.$message({message: "又见面了。" + err, type: 'error'});
                 })
             },
             getDownloadURL(id, type, path) {
