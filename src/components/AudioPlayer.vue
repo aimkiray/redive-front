@@ -1,9 +1,8 @@
 <template>
     <div>
         <aplayer
-                @timeupdate="timeUpdate"
                 @canplay="genWave"
-                @listSwitch="needGenWave = true"
+                @listSwitch="switchAudio"
                 :audio="audioList"
                 :lrcType="3"
                 ref="aplayer"
@@ -11,23 +10,44 @@
 
         <el-row class="audio-player">
 
+            <p id="subtitle" class="text-center text-info">&nbsp;</p>
             <div id="wave-timeline"></div>
             <div id="waveform"></div>
+
+            <form role="form" name="edit" style="opacity: 1; transition: opacity 300ms linear; margin: 30px 0;">
+                <div class="form-group">
+                    <label for="start">Start</label>
+                    <input class="form-control" id="start" name="start"/>
+                </div>
+
+                <div class="form-group">
+                    <label for="end">End</label>
+                    <input class="form-control" id="end" name="end"/>
+                </div>
+
+                <div class="form-group">
+                    <label for="note">Note</label>
+                    <textarea id="note" class="form-control" rows="3" name="note"></textarea>
+                </div>
+
+                <button type="submit" class="btn btn-success btn-block">Save</button>
+                <button type="button" class="btn btn-danger btn-block" data-action="delete-region">Delete</button>
+            </form>
 
             <el-col :xs="0" :sm="6"><p></p></el-col>
             <el-col :xs="24" :sm="12">
                 <div class="grid-content">
-                    <el-button round v-on:click="playCurrent">Play</el-button>
-                    <el-button round v-on:click="pauseCurrent">Pause</el-button>
-                    <el-button round v-on:click="markA">A</el-button>
-                    <el-button round v-on:click="markB">B</el-button>
-                    <el-button round v-on:click="proceedCurrent">Proceed</el-button>
+                    <el-button round v-on:click="playAudio">Play</el-button>
+                    <el-button round v-on:click="pauseAudio">Pause</el-button>
+                    <!--                    <el-button round v-on:click="markA">A</el-button>-->
+                    <!--                    <el-button round v-on:click="markB">B</el-button>-->
+                    <el-button round v-on:click="proceedAudio">Proceed</el-button>
                 </div>
-                <div class="grid-content">
-                    <el-divider v-if="!(bMark.length === 0)">Loop</el-divider>
-                    <el-button v-for="(mark, index) in bMark" v-bind:key="index" v-on:click="loopAB(index)">{{mark}}
-                    </el-button>
-                </div>
+                <!--                <div class="grid-content">-->
+                <!--                    <el-divider v-if="!(bMark.length === 0)">Loop</el-divider>-->
+                <!--                    <el-button v-for="(mark, index) in bMark" v-bind:key="index" v-on:click="loopAB(index)">{{mark}}-->
+                <!--                    </el-button>-->
+                <!--                </div>-->
             </el-col>
         </el-row>
 
@@ -45,12 +65,10 @@
         data() {
             return {
                 audioList: [],
-                aMark: [],
-                bMark: [],
-                regions: [],
-                isRecord: 0,
-                isLoop: 0,
-                loopIndex: 0,
+                regionData: "",
+                isRecord: false,
+                isLoop: false,
+                currentRegion: null,
                 realPlayTime: 0,
                 lastPlayTime: 0,
                 needGenWave: true,
@@ -83,7 +101,7 @@
             this.$nextTick(() => {
                 this.wavesurfer = WaveSurfer.create({
                     container: '#waveform',
-                    height: 100,
+                    height: 150,
                     pixelRatio: 1,
                     scrollParent: true,
                     normalize: true,
@@ -119,59 +137,29 @@
             }
         },
         methods: {
-            playCurrent: function () {
+            playAudio() {
                 this.aplayer.play();
             },
-            pauseCurrent: function () {
+            pauseAudio() {
                 this.aplayer.pause();
             },
-            proceedCurrent: function () {
-                if (this.isRecord) {
-                    // Delete record A
-                    this.aMark.pop();
-                } else {
-                    this.aplayer.seek(this.lastPlayTime);
-                }
+            proceedAudio() {
                 this.isLoop = 0;
             },
-            markA: function () {
-                if (this.isLoop) {
-                    this.isLoop = 0;
-                    // Seek to last played time
-                    this.aplayer.seek(this.lastPlayTime);
-                }
-                // Record loop start time
-                // If user clicked too much
-                if (this.isRecord) {
-                    // Delete one
-                    this.aMark.pop();
-                }
-                this.aMark.push(this.realPlayTime);
-                this.isRecord = 1;
-            },
-            markB: function () {
-                // Record loop end time
-                // Already clicked start and After time A
-                if (this.isRecord && this.realPlayTime > this.aMark[this.aMark.length - 1]) {
-                    let nowTime = this.realPlayTime;
-                    this.bMark.push(nowTime);
-                    // Last played time
-                    if (nowTime > this.lastPlayTime) {
-                        this.lastPlayTime = nowTime
+            regionLoop() {
+                // Execute loop
+                this.aplayer.seek(this.currentRegion.start);
+                this.aplayer.play();
+                this.currentRegion.once('out', () => {
+                    if (this.isLoop) {
+                        this.regionLoop()
+                    } else if (
+                        this.audioElt.currentTime < this.currentRegion.end &&
+                        this.audioElt.currentTime > this.currentRegion.start
+                    ) {
+                        this.aplayer.pause();
                     }
-                    // Last loop index
-                    this.loopIndex = this.bMark.length - 1;
-                    this.isLoop = 1;
-                    this.isRecord = 0;
-                }
-            },
-            loopAB: function (index) {
-                if (this.realPlayTime > this.lastPlayTime) {
-                    this.lastPlayTime = this.realPlayTime;
-                }
-                this.aplayer.seek(this.aMark[index]);
-                this.loopIndex = index;
-                this.isLoop = 1;
+                });
             },
             getDownloadURL(id, type, path) {
                 if (path !== "") {
@@ -183,13 +171,8 @@
                 }
                 return ""
             },
-            timeUpdate: function () {
-                // Update current play time
-                this.realPlayTime = this.audioElt.currentTime;
-                // Execute loop
-                if (this.isLoop && this.realPlayTime >= this.bMark[this.loopIndex]) {
-                    this.aplayer.seek(this.aMark[this.loopIndex])
-                }
+            switchAudio() {
+                this.needGenWave = true
             },
             genWave() {
                 if (this.needGenWave) {
@@ -198,68 +181,37 @@
 
                     /* Regions */
 
-
                     this.wavesurfer.enableDragSelection({
                         color: this.randomColor(0.1)
                     });
 
-                    if (localStorage.regions) {
-                        this.loadRegions(JSON.parse(localStorage.regions));
-                    } else {
-                        // loadRegions(
-                        //     extractRegions(
-                        //         this.wavesurfer.backend.getPeaks(512),
-                        //         this.wavesurfer.getDuration()
-                        //     )
-                        // );
-                        this.wavesurfer.util
-                            .ajax({
-                                responseType: 'json',
-                                url: 'annotations.json'
-                            })
-                            .on('success', function (data) {
-                                this.loadRegions(data);
-                                this.saveRegions();
-                            });
+                    // load exist regions
+                    if (this.regionData) {
+                        this.loadRegions(this.regionData);
                     }
+                    this.saveRegions();
 
-                    this.wavesurfer.on('region-click', function (region, e) {
+                    this.wavesurfer.on('region-click', (region, e) => {
+                        this.currentRegion = region;
                         e.stopPropagation();
-                        // Play on click, loop on shift click
-                        e.shiftKey ? region.playLoop() : region.play();
+                        // Play on click, loop on ctrl click
+                        e.ctrlKey ? this.isLoop = true : this.isLoop = false;
+                        this.regionLoop()
                     });
                     this.wavesurfer.on('region-click', this.editAnnotation);
                     this.wavesurfer.on('region-updated', this.saveRegions);
                     this.wavesurfer.on('region-removed', this.saveRegions);
                     this.wavesurfer.on('region-in', this.showNote);
-
-                    this.wavesurfer.on('region-play', function (region) {
-                        region.once('out', function () {
-                            this.wavesurfer.play(region.start);
-                            this.wavesurfer.pause();
-                        });
-                    });
-
-                    /* Toggle play/pause buttons. */
-                    const playButton = document.querySelector('#play');
-                    const pauseButton = document.querySelector('#pause');
-                    this.wavesurfer.on('play', function () {
-                        playButton.style.display = 'none';
-                        pauseButton.style.display = '';
-                    });
-                    this.wavesurfer.on('pause', function () {
-                        playButton.style.display = '';
-                        pauseButton.style.display = 'none';
-                    });
                 }
             },
             /**
-             * Save annotations to localStorage.
+             * Save annotations to server
              */
             saveRegions() {
-                localStorage.regions = JSON.stringify(
-                    Object.keys(this.wavesurfer.regions.list).map(function (id) {
-                        const region = this.wavesurfer.regions.list[id];
+                const regions = this.wavesurfer.regions.list;
+                this.regionData = JSON.stringify(
+                    Object.keys(regions).map(function (id) {
+                        const region = regions[id];
                         return {
                             start: region.start,
                             end: region.end,
@@ -270,16 +222,16 @@
                 );
             },
             /**
-             * Load regions from localStorage.
+             * Load regions from server
              */
             loadRegions(regions) {
-                regions.forEach(function (region) {
+                regions.forEach(region => {
                     region.color = this.randomColor(0.1);
                     this.wavesurfer.addRegion(region);
                 });
             },
             /**
-             * Extract regions separated by silence.
+             * Extract regions separated by silence
              */
             extractRegions(peaks, duration) {
                 // Silence params
@@ -345,7 +297,7 @@
                 });
             },
             /**
-             * Random RGBA color.
+             * Random RGBA color
              */
             randomColor(alpha) {
                 return (
@@ -360,7 +312,7 @@
                 );
             },
             /**
-             * Edit annotation for a region.
+             * Edit annotation for a region
              */
             editAnnotation(region) {
                 const form = document.forms.edit;
@@ -386,7 +338,7 @@
                 form.dataset.region = region.id;
             },
             /**
-             * Display annotation.
+             * Display annotation
              */
             showNote(region) {
                 if (!this.showNote.el) {
