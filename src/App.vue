@@ -12,8 +12,7 @@
                 <el-menu-item index="equipment">
                     <span slot="title">磁带</span>
                 </el-menu-item>
-
-                <el-menu-item class="top-menu-right" @click="handleUrl('https://github.com/aimkiray/reosu')">
+                <el-menu-item @click="handleUrl('https://github.com/aimkiray/reosu')">
                     <span slot="title">Github</span>
                 </el-menu-item>
 
@@ -101,6 +100,11 @@
 </script>
 
 <style lang="scss" scoped>
+    .top-menu-center {
+        display: inline-block;
+        margin: auto 0;
+    }
+
     .top-menu-right {
         float: right !important;
     }
