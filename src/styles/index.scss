@@ -44,6 +44,20 @@ body {
   max-width: 400px;
 }
 
+.login-form-item {
+  label {
+    padding: 0 !important;
+    font-size: medium;
+  }
+}
+
+.region-form-container {
+  label {
+    padding: 0 !important;
+    font-size: small;
+  }
+}
+
 // Equipment page
 
 .admin-container {

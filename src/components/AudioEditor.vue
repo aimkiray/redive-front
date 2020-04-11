@@ -7,25 +7,6 @@
                 <i class="el-icon-question"></i>
                 上传本地音频到服务器。磁带和名字是必填参数，其他随意，但最好同时上传MP3格式音频文件（毕竟我只是个没有感情的复读机。
             </div>
-            <el-row :gutter="20">
-                <el-col :xs="20" :sm="9">
-                    <el-form-item label="磁带" prop="playlist">
-                        <el-select style="display: block" v-model="audioForm.playlist" placeholder="录入磁带">
-                            <el-option
-                                    v-for="item in this.playlistData"
-                                    :key="item.id"
-                                    :label="item.name"
-                                    :value="item.id">
-                            </el-option>
-                        </el-select>
-                    </el-form-item>
-                </el-col>
-                <el-col :xs="4" :sm="3">
-                    <el-button style="float: right" @click="redirect('playlist-editor')">
-                        <i class="el-icon-plus"></i>
-                    </el-button>
-                </el-col>
-            </el-row>
 
             <el-row :gutter="20">
                 <el-col :xs="24" :sm="12">
@@ -49,6 +30,27 @@
             <!--            <el-form-item label="音频">-->
             <!--                <el-input v-model="audioForm.audio" placeholder="音频直链" disabled></el-input>-->
             <!--            </el-form-item>-->
+
+            <el-row :gutter="20">
+                <el-col :xs="20" :sm="9">
+                    <el-form-item label="磁带" prop="playlist">
+                        <el-select style="display: block" v-model="audioForm.playlist" placeholder="录入磁带">
+                            <el-option
+                                    v-for="item in this.playlistData"
+                                    :key="item.id"
+                                    :label="item.name"
+                                    :value="item.id">
+                            </el-option>
+                        </el-select>
+                    </el-form-item>
+                </el-col>
+                <el-col :xs="4" :sm="3">
+                    <el-button style="float: right" @click="redirect('playlist-editor')">
+                        <i class="el-icon-plus"></i>
+                    </el-button>
+                </el-col>
+            </el-row>
+
             <el-row :gutter="20">
                 <el-col :xs="24" :sm="12">
                     <el-form-item label="本体">

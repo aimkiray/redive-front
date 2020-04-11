@@ -60,10 +60,11 @@ let router = new VueRouter({
 });
 
 router.beforeEach((to, from, next) => {
-    // Sign in to access admin page
-    if (to.name.indexOf('equipment') !== -1) {
+    // Sign in to access any page
+    if (to.name.indexOf('user') === -1) {
         // TODO Whether the token is valid
         if (!localStorage.getItem("token")) {
+            store.commit("setActiveMenu", to.name);
             next('/user');
             return
         }
@@ -72,9 +73,7 @@ router.beforeEach((to, from, next) => {
     // Identify home menu or admin tab by path
     if (to.path.indexOf('equipment/') !== -1) {
         store.commit("setActiveAdminMenu", to.name);
-    } else if (to.name === "user") {
-        store.commit("setActiveMenu", "equipment");
-    } else {
+    } else if (to.name !== "user") {
         store.commit("setActiveMenu", to.name);
     }
     next()

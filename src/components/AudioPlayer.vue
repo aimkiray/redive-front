@@ -1,68 +1,94 @@
 <template>
     <div>
         <aplayer
-                @canplay="genWave"
+                @canplay="genPlayer"
                 @listSwitch="switchAudio"
+                @timeupdate="changeCurrentTime"
                 :audio="audioList"
                 :lrcType="3"
                 ref="aplayer"
-                fixed/>
+                fixed
+                filled/>
 
-        <el-row class="audio-player">
+        <p id="regionNote" class="region-note"></p>
+        <div id="wave-timeline"></div>
+        <div id="waveform"></div>
 
-            <p id="subtitle"></p>
-            <div id="wave-timeline"></div>
-            <div id="waveform"></div>
+        <el-row class="audio-player-control">
 
             <el-col :xs="24" :sm="12" class="audio-player-control">
                 <div class="grid-content">
                     <el-button round v-on:click="playAudio">Play</el-button>
                     <el-button round v-on:click="pauseAudio">Pause</el-button>
-                    <!--                    <el-button round v-on:click="markA">A</el-button>-->
-                    <!--                    <el-button round v-on:click="markB">B</el-button>-->
+                    <el-button round v-on:click="markA">A</el-button>
+                    <el-button round v-on:click="markB">B</el-button>
                     <el-button round v-on:click="proceedAudio">打断</el-button>
+                    <el-button round v-on:click="saveRegions">刻进DNA</el-button>
 
-                    <div style="display: inline-block; float: right" v-if="regionData">
-                        <el-button type="primary" @click="editRegion">保存</el-button>
-                        <el-button @click="deleteRegion">删除</el-button>
+                    <div style="display: inline-block; float: right" v-if="regionForm.start">
+                        <el-popover
+                                placement="bottom"
+                                width="260"
+                                trigger="click"
+                                ref="regionPopover">
+                            <el-form :model="regionForm"
+                                     ref="regionForm"
+                                     label-width="40px"
+                                     label-position="top"
+                                     class="region-form-container">
+                                <el-row :gutter="10">
+                                    <el-col :sm="12">
+                                        <el-form-item label="Start" size="mini">
+                                            <el-input-number
+                                                    v-model="regionForm.start"
+                                                    style="display: block"
+                                                    controls-position="right"
+                                                    :precision="1"
+                                                    :step="0.1">
+                                            </el-input-number>
+                                        </el-form-item>
+                                    </el-col>
+                                    <el-col :sm="12">
+                                        <el-form-item label="End" size="mini">
+                                            <el-input-number
+                                                    v-model="regionForm.end"
+                                                    style="display: block"
+                                                    controls-position="right"
+                                                    :precision="1"
+                                                    :step="0.1">
+                                            </el-input-number>
+                                        </el-form-item>
+                                    </el-col>
+                                </el-row>
+                                <el-form-item label="Note" size="mini">
+                                    <el-input
+                                            type="textarea"
+                                            v-model="regionForm.note"
+                                            rows="4">
+                                    </el-input>
+                                </el-form-item>
+                            </el-form>
+                            <div style="text-align: right; margin: 0">
+                                <el-button size="mini" type="error" @click="deleteRegion">删除</el-button>
+                                <el-button size="mini" type="primary" @click="editRegion">保存</el-button>
+                            </div>
+                            <el-button slot="reference">修改</el-button>
+                        </el-popover>
                     </div>
                 </div>
 
-                <el-form :model="regionForm"
-                         ref="regionForm"
-                         v-if="regionData"
-                         label-width="40px"
-                         class="region-form-container">
-                    <el-row :gutter="20">
-                        <el-col :xs="24" :sm="8">
-                            <el-form-item label="Start">
-                                <el-input-number
-                                        v-model="regionForm.start"
-                                        controls-position="right"
-                                        style="display: block"
-                                        :precision="1" :step="0.1">
-                                </el-input-number>
-                            </el-form-item>
-                            <el-form-item label="End">
-                                <el-input-number
-                                        v-model="regionForm.end"
-                                        controls-position="right"
-                                        style="display: block"
-                                        :precision="1" :step="0.1">
-                                </el-input-number>
-                            </el-form-item>
-                        </el-col>
-                        <el-col :xs="24" :sm="16">
-                            <el-form-item label="Note">
-                                <el-input type="textarea" v-model="regionForm.note"
-                                          rows="4"></el-input>
-                            </el-form-item>
-                        </el-col>
-                    </el-row>
-                </el-form>
             </el-col>
 
             <el-col :xs="0" :sm="6"><p></p></el-col>
+        </el-row>
+
+        <el-row class="lyric-container">
+            <LyricScroll
+                    v-if="originLyric !== null || originTLyric !== null"
+                    :lyric="lyric"
+                    :t-lyric="tLyric"
+                    :current-time="currentTime"
+                    @change-current-time="redirectTime"></LyricScroll>
         </el-row>
 
     </div>
@@ -74,8 +100,13 @@
     import MinimapPlugin from 'wavesurfer.js/dist/plugin/wavesurfer.minimap.min.js';
     import RegionsPlugin from 'wavesurfer.js/dist/plugin/wavesurfer.regions.js';
 
+    import LyricScroll from './LyricScroll'
+
     export default {
         name: 'AudioPlayer',
+        components: {
+            LyricScroll
+        },
         data() {
             return {
                 audioList: [],
@@ -87,11 +118,15 @@
                 },
                 isRecord: false,
                 isLoop: false,
-                isRepeat: false,
+                currentTime: 0,
                 currentRegion: null,
                 realPlayTime: 0,
                 lastPlayTime: 0,
                 needGenWave: true,
+                needGenLyric: true,
+                originLyric: null,
+                originTLyric: null,
+                tempStr: "",
             }
         },
         mounted() {
@@ -100,7 +135,7 @@
                     const audioRaw = res.data.data;
                     for (let i = 0, len = audioRaw.length; i < len; i++) {
                         const audioID = audioRaw[i].id;
-                        // 生成文件下载链接
+                        // Generate file download link
                         audioRaw[i].url = this.getDownloadURL(audioID, "audio", audioRaw[i].audio);
                         audioRaw[i].cover = this.getDownloadURL(audioID, "cover", audioRaw[i].cover);
                         audioRaw[i].lrc = this.getDownloadURL(audioID, "lrc", audioRaw[i].lrc);
@@ -157,6 +192,14 @@
             },
             aplayer() {
                 return this.$refs.aplayer
+            },
+            // 原词，格式为{xx: 歌词, ...}，xx为该词开始时间
+            lyric() {
+                return this.lyricToObj(this.originLyric)
+            },
+            // 译词，格式同原词
+            tLyric() {
+                return this.lyricToObj(this.originTLyric)
             }
         },
         methods: {
@@ -167,24 +210,48 @@
                 this.aplayer.pause();
             },
             proceedAudio() {
-                this.isRepeat = false;
                 this.isLoop = false;
             },
-            regionLoop() {
-                // Update current play time
-                // this.realPlayTime = this.audioElt.currentTime;
-                // // Execute loop
-                // if (this.isRepeat && this.realPlayTime >= this.currentRegion.end) {
-                //     if (this.isLoop) {
-                //         this.aplayer.seek(this.currentRegion.start);
-                //     } else {
-                //         this.aplayer.pause();
-                //     }
-                // }
+            markA() {
 
+            },
+            markB() {
+
+            },
+            // 将00:00.00转换为秒数
+            timeStrToNum(str) {
+                let minute = Number(str.slice(0, 2));
+                let second = Number(str.slice(3, 5));
+                let minSec = Number(str.slice(6, 8));
+                return minute * 60 + second + minSec / 100
+            },
+            // 将歌词字符串转换为对象，格式为{开始时间: 歌词, ...}
+            lyricToObj(lyricStr) {
+                if (lyricStr === null) {
+                    return null
+                }
+                let obj = {};
+                let perLyric;
+                let time;
+                lyricStr.split('\n').forEach((item) => {
+                    perLyric = item.slice(item.indexOf(']') + 1);
+                    if (perLyric) {
+                        time = this.timeStrToNum(item.slice(1, 9));
+                        obj[time] = perLyric
+                    }
+                });
+                return obj
+            },
+            changeCurrentTime(newTime) {
+                this.currentTime = newTime
+            },
+            redirectTime(newTime) {
+                this.wavesurfer.play(newTime);
+            },
+            regionLoop() {
                 // Execute loop
                 this.wavesurfer.play(this.currentRegion.start);
-                if (this.audioElt.paused) {
+                if (this.wavesurfer.paused) {
                     this.wavesurfer.play()
                 }
                 this.currentRegion.once('out', () => {
@@ -200,62 +267,51 @@
                     }
                 });
             },
-            getDownloadURL(id, type, path) {
-                if (path !== "") {
-                    if (path.indexOf("http") === -1) {
-                        return this.baseURL + "/audio/download/" + id + "/" + type
-                    } else {
-                        return path
-                    }
-                }
-                return ""
-            },
             switchAudio() {
+                // 生成歌词
+                this.needGenLyric = true;
+
+                // 生成波形和控件
                 this.regionData = "";
+                this.wavesurfer.clearRegions();
                 this.needGenWave = true;
             },
-            genWave() {
-                if (this.needGenWave) {
-                    this.wavesurfer.load(this.audioElt.audio);
-                    this.needGenWave = false;
-
-                    /* Regions */
-
-                    this.wavesurfer.enableDragSelection({
-                        color: this.randomColor(0.1)
-                    });
-
-                    // load exist regions
-                    if (this.regionData) {
-                        this.loadRegions(this.regionData);
-                    }
-                    // this.saveRegions();
-
-                    this.wavesurfer.on('region-click', (region, e) => {
-                        this.currentRegion = region;
-                        this.showEditor();
-                        e.stopPropagation();
-                        // Play on click, loop on ctrl click
-                        e.ctrlKey ? region.playLoop(region.start) : region.play(region.start);
-                        // e.ctrlKey ? this.isLoop = true : this.isLoop = false;
-                        // this.isRepeat = true;
-                        // this.aplayer.seek(this.currentRegion.start);
-                        // if (this.audioElt.paused) {
-                        //     this.aplayer.play()
-                        // }
-                        // this.regionLoop()
-                    });
-                    // this.wavesurfer.on('region-updated', this.saveRegions);
-                    // this.wavesurfer.on('region-removed', this.saveRegions);
-                    this.wavesurfer.on('region-in', this.showNote);
-
-                    // this.wavesurfer.on('region-play', function(region) {
-                    //     region.once('out', function() {
-                    //         this.wavesurfer.play(region.start);
-                    //         this.wavesurfer.pause();
-                    //     });
-                    // });
+            genPlayer() {
+                if (this.needGenLyric) {
+                    this.needGenLyric = false;
+                    // eslint-disable-next-line no-console
+                    // this.originLyric = this.aplayer.lyric.lrc;
+                    // this.originTLyric = this.aplayer.lyric.tlrc
                 }
+                if (this.needGenWave) {
+                    this.needGenWave = false;
+                    this.genWave()
+                }
+            },
+            genWave() {
+                this.wavesurfer.load(this.audioElt.audio);
+
+                /* Regions */
+
+                this.wavesurfer.enableDragSelection({
+                    color: this.randomColor(0.1)
+                });
+
+                // load exist regions
+                if (this.regionData) {
+                    this.loadRegions(this.regionData);
+                }
+
+                this.wavesurfer.on('region-click', (region, e) => {
+                    this.currentRegion = region;
+                    this.showEditor();
+                    e.stopPropagation();
+                    // Play on click, loop on ctrl click
+                    // e.ctrlKey ? region.playLoop(region.start) : region.play(region.start);
+                    e.ctrlKey ? this.isLoop = true : this.isLoop = false;
+                    this.regionLoop()
+                });
+                this.wavesurfer.on('region-in', this.showNote);
             },
             /**
              * Save annotations to server
@@ -273,9 +329,10 @@
                         };
                     })
                 );
-                this.$axios.put("/audio/" + this.aplayer.currentMusic.id, {
-                    regions: this.regionData
-                }).then(res => {
+                const audioBody = new FormData();
+                audioBody.set('regions', "'" + this.regionData + "'");
+                this.$axios.put("/audio/" + this.aplayer.currentMusic.id +
+                    "?token=" + localStorage.getItem("token"), audioBody).then(res => {
                     if (res.data.code === 1) {
                         this.$message({
                             showClose: true,
@@ -302,11 +359,33 @@
             },
             deleteRegion() {
                 this.wavesurfer.regions.list[this.currentRegion.id].remove();
+                this.resetRegionPopover()
+            },
+            /**
+             * Edit annotation for a region
+             */
+            showEditor() {
+                this.regionForm.start = Math.round(this.currentRegion.start * 10) / 10;
+                this.regionForm.end = Math.round(this.currentRegion.end * 10) / 10;
+                this.regionForm.note = this.currentRegion.data.note || '';
+            },
+            editRegion() {
+                this.currentRegion.update({
+                    start: this.regionForm.start,
+                    end: this.regionForm.end,
+                    data: {
+                        note: this.regionForm.note
+                    }
+                });
+                this.resetRegionPopover()
+            },
+            resetRegionPopover() {
+                document.querySelector("#app").click();
                 this.regionForm = {
                     start: "",
                     end: "",
                     note: ""
-                }
+                };
             },
             /**
              * Extract regions separated by silence
@@ -390,39 +469,36 @@
                 );
             },
             /**
-             * Edit annotation for a region
-             */
-            showEditor() {
-                this.regionForm.start = Math.round(this.currentRegion.start * 10) / 10;
-                this.regionForm.end = Math.round(this.currentRegion.end * 10) / 10;
-                this.regionForm.note = this.currentRegion.data.note || '';
-            },
-            editRegion() {
-                this.currentRegion.update({
-                    start: this.regionForm.start,
-                    end: this.regionForm.end,
-                    data: {
-                        note: this.regionForm.note
-                    }
-                });
-            },
-            /**
              * Display annotation
              */
             showNote(region) {
                 if (!this.showNote.el) {
-                    this.showNote.el = document.querySelector('#subtitle');
+                    this.showNote.el = document.querySelector('#regionNote');
                 }
                 this.showNote.el.textContent = region.data.note || '';
             },
+            getDownloadURL(id, type, path) {
+                if (path !== "") {
+                    if (path.indexOf("http") === -1) {
+                        return this.baseURL + "/audio/download/" + id + "/" + type
+                    } else {
+                        return path
+                    }
+                }
+                return ""
+            }
         },
     };
 
 </script>
 
 <style lang="scss" scoped>
-    .audio-player {
+    .audio-player-control {
         /*margin-top: 60px;*/
+    }
+
+    .region-note {
+        height: 1rem;
     }
 
     .audio-player-control {
@@ -433,9 +509,8 @@
         margin: 0 0 1rem;
     }
 
-    /*.region-form-container {*/
-    /*    opacity: 1;*/
-    /*    transition: opacity 300ms linear;*/
-    /*}*/
+    .lyric-container {
+        height: 100%;
+    }
 
 </style>

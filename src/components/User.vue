@@ -73,7 +73,7 @@
                                     message: "level up!",
                                     type: "success"
                                 });
-                                this.$router.push({name: "equipment"});
+                                this.$router.push({name: this.$store.state.activeMenu});
                             } else {
                                 this.$message({
                                     showClose: true,
@@ -91,7 +91,7 @@
     }
 </script>
 
-<style lang="scss">
+<style lang="scss" scoped>
     .login-form-container {
         max-width: 480px;
         padding: 4rem 0 0;
@@ -100,12 +100,5 @@
     .login-form-title {
         font-size: xx-large;
         padding: 0 0 1rem;
-    }
-
-    .login-form-item {
-        label {
-            padding: 0 !important;
-            font-size: medium;
-        }
     }
 </style>

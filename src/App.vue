@@ -79,7 +79,8 @@
                     message: "level down!",
                     type: "info"
                 });
-                this.$router.push({name: 'audio-player'});
+                this.$router.push({name: "user"});
+                // this.$store.commit("setActiveMenu", "value");
                 this.showLogOut = false;
             },
         },
