@@ -35,6 +35,10 @@ let router = new VueRouter({
             component: Equipment,
             children: [
                 {
+                    path: '',
+                    redirect: 'audio-table'
+                },
+                {
                     path: 'audio-editor',
                     name: 'audio-editor',
                     component: AudioEditor
@@ -72,6 +76,7 @@ router.beforeEach((to, from, next) => {
 
     // Identify home menu or admin tab by path
     if (to.path.indexOf('equipment/') !== -1) {
+        store.commit("setActiveMenu", "equipment");
         store.commit("setActiveAdminMenu", to.name);
     } else if (to.name !== "user") {
         store.commit("setActiveMenu", to.name);

@@ -58,10 +58,62 @@ body {
   }
 }
 
+// Audio Editor
+
+.audio-form-container {
+  .el-alert {
+    margin-top: 0 !important;
+  }
+
+  .el-upload {
+    display: block;
+    .el-upload-dragger {
+      width: auto;
+    }
+  }
+}
+
 // Equipment page
 
 .admin-container {
   padding: 2rem 2rem;
   width: 100vw;
   max-width:100%;
+}
+
+// Player
+
+.audio-title-container {
+  height: 60px;
+
+  .playlist-select {
+    margin: 10px 20px 10px 10px;
+
+    .el-input {
+      transition: all .25s ease,height 0s;
+
+      .el-input__inner {
+        border: none;
+        border-radius: 12px;
+        font-size: 16px;
+        background: $background-color;
+      }
+
+      &:hover {
+        transform: translateY(-4px);
+        transition: all .25s ease,height 0s;
+
+        .el-input__inner {
+          background: #fff;
+          box-shadow: 0 5px 15px -4px $shadow-color;
+        }
+      }
+    }
+  }
+
+  .audio-title {
+    font-size: 18px;
+    line-height: 18px;
+    vertical-align: middle;
+  }
 }

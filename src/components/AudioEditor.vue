@@ -51,6 +51,17 @@
                 </el-col>
             </el-row>
 
+            <el-row>
+                <el-form-item label="其它">
+                    <el-input
+                            type="textarea"
+                            :autosize="{ minRows: 4 }"
+                            placeholder="音频相关信息，在播放器显示，支持Markdown语法"
+                            v-model="audioForm.others">
+                    </el-input>
+                </el-form-item>
+            </el-row>
+
             <el-row :gutter="20">
                 <el-col :xs="24" :sm="12">
                     <el-form-item label="本体">
@@ -66,14 +77,16 @@
                                 style="display: block"
                         >
                             <i class="el-icon-upload"></i>
-                            <div class="el-upload__text">将文件拖过来，或<em>点咱上传</em></div>
+                            <div class="el-upload__text">把文件拖过来，或<em>点咱上传</em></div>
                         </el-upload>
-                        <el-alert
-                                title="只能上传mp3/lrc/jpg/png文件，封面&歌词&本体可以一起上传。歌词翻译的文件名需包含'trans'字样。"
-                                type="warning"
-                                style="margin-top: 10px">
-                        </el-alert>
                     </el-form-item>
+                </el-col>
+                <el-col :xs="24" :sm="12">
+                    <el-alert
+                            title="只能上传mp3/lrc/jpg/png文件，封面&歌词&本体可以一起上传。歌词翻译的文件名需包含'trans'字样。"
+                            type="warning"
+                            style="margin-top: 10px">
+                    </el-alert>
                 </el-col>
             </el-row>
 

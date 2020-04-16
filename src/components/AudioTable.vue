@@ -1,7 +1,7 @@
 <template>
     <div>
         <span style="padding: 0 10px 0 10px">磁带</span>
-        <el-select v-model="playlistID" @change="getPlaylist" placeholder="查看磁带内容">
+        <el-select v-model="playlistID" @change="getAudio">
             <el-option
                     v-for="item in this.playlistData"
                     :key="item.id"
@@ -87,11 +87,7 @@
             });
 
             // 默认查询第一个歌单
-            this.$axios.get("/audio").then(res => {
-                this.tableData = res.data.data;
-                // this.playlistID = res.data.id;
-                this.formLoading = false
-            })
+            this.getAudio()
         },
         computed: {
             baseURL() {
@@ -99,7 +95,7 @@
             }
         },
         methods: {
-            getPlaylist() {
+            getAudio() {
                 this.$axios.get("/audio?id=" + this.playlistID).then(res => {
                     this.tableData = res.data.data;
                     this.formLoading = false

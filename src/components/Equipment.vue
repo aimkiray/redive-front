@@ -22,6 +22,10 @@
                     <i class="el-icon-magic-stick"></i>
                     <span slot="title">批发磁带</span>
                 </el-menu-item>
+                <el-menu-item index="data-manage">
+                    <i class="el-icon-setting"></i>
+                    <span slot="title">数据管理</span>
+                </el-menu-item>
             </el-menu>
         </el-col>
         <el-col :xs="24" :sm="20">
@@ -54,9 +58,6 @@
                 }
             }
         },
-        created() {
-            this.$router.push({name: this.activeAdminMenu})
-        }
     }
 </script>
 

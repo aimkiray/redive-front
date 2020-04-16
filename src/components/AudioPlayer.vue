@@ -1,35 +1,42 @@
 <template>
     <div>
-        <aplayer
-                @canplay="genPlayer"
-                @listSwitch="switchAudio"
-                @timeupdate="changeCurrentTime"
-                :audio="audioList"
-                :lrcType="3"
-                ref="aplayer"
-                fixed
-                filled/>
 
-        <p id="regionNote" class="region-note"></p>
-        <div id="wave-timeline"></div>
-        <div id="waveform"></div>
+        <el-row class="audio-title-container">
+            <el-select class="playlist-select" v-model="playlistID" @change="getAudio">
+                <el-option
+                        v-for="item in this.playlistData"
+                        :key="item.id"
+                        :label="item.name"
+                        :value="item.id">
+                </el-option>
+            </el-select>
+            <span class="audio-title">{{ currentName }}</span>
+        </el-row>
+
+        <div class="waveform-container">
+            <div id="wave-timeline"></div>
+            <div id="waveform"></div>
+        </div>
 
         <el-row class="audio-player-control">
 
             <el-col :xs="24" :sm="12" class="audio-player-control">
-                <div class="grid-content">
-                    <el-button round v-on:click="playAudio">Play</el-button>
-                    <el-button round v-on:click="pauseAudio">Pause</el-button>
-                    <el-button round v-on:click="markA">A</el-button>
-                    <el-button round v-on:click="markB">B</el-button>
-                    <el-button round v-on:click="proceedAudio">打断</el-button>
-                    <el-button round v-on:click="saveRegions">刻进DNA</el-button>
 
-                    <div style="display: inline-block; float: right" v-if="regionForm.start">
+                <el-row>
+                    <el-button v-if="!isPlayed" round @click="audioControl">播放</el-button>
+                    <el-button v-if="isPlayed" round @click="audioControl">暂停</el-button>
+                    <el-button round v-if="isLoop" @click="loopControl">单次</el-button>
+                    <el-button round v-if="!isLoop" @click="loopControl">循环</el-button>
+                    <el-button round @click="markA">A</el-button>
+                    <el-button round @click="markB">B</el-button>
+                    <el-button round @click="genRegions">自动断句</el-button>
+
+                    <div style="display: inline-block;margin-left: 10px" v-if="regionForm.end">
                         <el-popover
                                 placement="bottom"
                                 width="260"
                                 trigger="click"
+                                @after-leave="resetRegionPopover"
                                 ref="regionPopover">
                             <el-form :model="regionForm"
                                      ref="regionForm"
@@ -72,24 +79,43 @@
                                 <el-button size="mini" type="error" @click="deleteRegion">删除</el-button>
                                 <el-button size="mini" type="primary" @click="editRegion">保存</el-button>
                             </div>
-                            <el-button slot="reference">修改</el-button>
+                            <el-button round slot="reference">修改</el-button>
                         </el-popover>
                     </div>
-                </div>
+                </el-row>
+
+                <el-row style="margin-top: 20px">
+                    <el-button round @click="loadRegions">读档</el-button>
+                    <el-button round @click="saveRegions">存档</el-button>
+                    <el-button round @click="clearRegions">重置</el-button>
+                </el-row>
+
+                <el-row>
+                    <p class="region-note" v-text="currentNote"></p>
+                </el-row>
 
             </el-col>
 
-            <el-col :xs="0" :sm="6"><p></p></el-col>
+            <el-col :xs="24" :sm="12">
+                <div v-if="!isList && !isLyric" v-html="getOthers" class="others-container"></div>
+            </el-col>
         </el-row>
 
-        <el-row class="lyric-container">
-            <LyricScroll
-                    v-if="originLyric !== null || originTLyric !== null"
-                    :lyric="lyric"
-                    :t-lyric="tLyric"
-                    :current-time="currentTime"
-                    @change-current-time="redirectTime"></LyricScroll>
-        </el-row>
+        <aplayer
+                @canplay="genPlayer"
+                @listSwitch="switchAudio"
+                @play="isPlayed = true"
+                @pause="isPlayed = false"
+                @listShow="isList = true"
+                @listHide="isList = false"
+                @lrcShow="isLyric = true"
+                @lrcHide="isLyric = false"
+                :audio="audioList"
+                :lrcType="3"
+                ref="aplayer"
+                :autoplay="false"
+                fixed
+                filled/>
 
     </div>
 </template>
@@ -100,59 +126,54 @@
     import MinimapPlugin from 'wavesurfer.js/dist/plugin/wavesurfer.minimap.min.js';
     import RegionsPlugin from 'wavesurfer.js/dist/plugin/wavesurfer.regions.js';
 
-    import LyricScroll from './LyricScroll'
+    import marked from 'marked';
+    import '../styles/github-markdown.css';
 
     export default {
         name: 'AudioPlayer',
-        components: {
-            LyricScroll
-        },
         data() {
             return {
+                playlistID: "",
+                playlistData: [],
                 audioList: [],
-                regionData: "",
+                wavesurfer: null,
                 regionForm: {
                     start: "",
                     end: "",
                     note: ""
                 },
+                regionStart: null,
+                regionEnd: null,
                 isRecord: false,
                 isLoop: false,
+                isPlayed: false,
+                currentName: "",
                 currentTime: 0,
                 currentRegion: null,
+                currentNote: "",
                 realPlayTime: 0,
                 lastPlayTime: 0,
                 needGenWave: true,
-                needGenLyric: true,
-                originLyric: null,
-                originTLyric: null,
-                tempStr: "",
+                renderMd: null,
+                currentOthers: "",
+                marked: null,
+                isList: false,
+                isLyric: false,
             }
         },
-        mounted() {
-            this.$axios.get("/audio").then(res => {
-                if (res.data.code === 1) {
-                    const audioRaw = res.data.data;
-                    for (let i = 0, len = audioRaw.length; i < len; i++) {
-                        const audioID = audioRaw[i].id;
-                        // Generate file download link
-                        audioRaw[i].url = this.getDownloadURL(audioID, "audio", audioRaw[i].audio);
-                        audioRaw[i].cover = this.getDownloadURL(audioID, "cover", audioRaw[i].cover);
-                        audioRaw[i].lrc = this.getDownloadURL(audioID, "lrc", audioRaw[i].lrc);
-                        audioRaw[i].tlrc = this.getDownloadURL(audioID, "tlrc", audioRaw[i].tlrc);
-                    }
-                    this.audioList = audioRaw
-                } else {
-                    this.$message({
-                        showClose: true,
-                        message: "音频加载失败，内部错误。",
-                        type: "error"
-                    });
+        created() {
+            // 获取歌单列表
+            this.$axios.get("/playlist").then(res => {
+                if (res.data.code === 1 && res.data.data) {
+                    this.playlistData = res.data.data;
+                    this.playlistID = this.playlistData[0].id;
                 }
-            }).catch(err => {
-                this.$message({showClose: true, message: '音频加载失败。' + err, type: 'error'});
             });
 
+            // 加载最新歌单
+            this.getAudio()
+
+            // 初始化波形
             this.$nextTick(() => {
                 this.wavesurfer = WaveSurfer.create({
                     container: '#waveform',
@@ -162,7 +183,7 @@
                     normalize: true,
                     minimap: true,
                     backend: 'MediaElement',
-                    autoplay: true,
+                    autoplay: false,
                     removeMediaElementOnDestroy: false,
                     reloadMediaElement: false,
                     loopSelection: false,
@@ -181,6 +202,21 @@
                         })
                     ]
                 });
+
+                this.renderMd = new marked.Renderer();
+                this.marked = marked.setOptions({
+                    renderer: this.renderMd,
+                    gfm: true,
+                    tables: true,
+                    breaks: false,
+                    pedantic: false,
+                    sanitize: false,
+                    smartLists: true,
+                    smartypants: false,
+                    highlight: function(code) {
+                        return require("highlight.js").highlightAuto(code).value;
+                    },
+                });
             })
         },
         computed: {
@@ -193,67 +229,73 @@
             aplayer() {
                 return this.$refs.aplayer
             },
-            // 原词，格式为{xx: 歌词, ...}，xx为该词开始时间
-            lyric() {
-                return this.lyricToObj(this.originLyric)
+            getOthers() {
+                if (this.marked) {
+                    return this.marked(this.currentOthers);
+                }
+                return ""
             },
-            // 译词，格式同原词
-            tLyric() {
-                return this.lyricToObj(this.originTLyric)
-            }
         },
         methods: {
-            playAudio() {
-                this.aplayer.play();
+            getAudio() {
+                this.$axios.get("/audio?id=" + this.playlistID).then(res => {
+                    if (res.data.code === 1) {
+                        const audioRaw = res.data.data;
+                        for (let i = 0, len = audioRaw.length; i < len; i++) {
+                            const audioID = audioRaw[i].id;
+                            // Generate file download link
+                            audioRaw[i].url = this.getDownloadURL(audioID, "audio", audioRaw[i].audio);
+                            audioRaw[i].cover = this.getDownloadURL(audioID, "cover", audioRaw[i].cover);
+                            audioRaw[i].lrc = this.getDownloadURL(audioID, "lrc", audioRaw[i].lrc);
+                            audioRaw[i].tlrc = this.getDownloadURL(audioID, "tlrc", audioRaw[i].tlrc);
+                        }
+                        this.audioList = audioRaw
+                    } else {
+                        this.$message({
+                            showClose: true,
+                            message: "音频加载失败，内部错误。",
+                            type: "error"
+                        });
+                    }
+                }).catch(err => {
+                    this.$message({showClose: true, message: '音频加载失败。' + err, type: 'error'});
+                });
             },
-            pauseAudio() {
-                this.aplayer.pause();
+            switchAudio() {
+                // 清空 Regions，生成波形
+                this.clearRegions();
+                this.needGenWave = true;
             },
-            proceedAudio() {
-                this.isLoop = false;
+            audioControl() {
+                if (this.isPlayed) {
+                    this.wavesurfer.pause();
+                } else {
+                    this.wavesurfer.play();
+                }
+            },
+            loopControl() {
+                this.isLoop = !this.isLoop
             },
             markA() {
-
+                this.regionStart = this.audioElt.currentTime
+                this.wavesurfer.play();
             },
             markB() {
-
-            },
-            // 将00:00.00转换为秒数
-            timeStrToNum(str) {
-                let minute = Number(str.slice(0, 2));
-                let second = Number(str.slice(3, 5));
-                let minSec = Number(str.slice(6, 8));
-                return minute * 60 + second + minSec / 100
-            },
-            // 将歌词字符串转换为对象，格式为{开始时间: 歌词, ...}
-            lyricToObj(lyricStr) {
-                if (lyricStr === null) {
-                    return null
+                if (this.regionStart !== null) {
+                    this.wavesurfer.addRegion({
+                        start: this.regionStart,
+                        end: this.audioElt.currentTime,
+                        data: {
+                            note: ""
+                        }
+                    });
+                    this.regionStart = null;
+                    this.wavesurfer.pause();
                 }
-                let obj = {};
-                let perLyric;
-                let time;
-                lyricStr.split('\n').forEach((item) => {
-                    perLyric = item.slice(item.indexOf(']') + 1);
-                    if (perLyric) {
-                        time = this.timeStrToNum(item.slice(1, 9));
-                        obj[time] = perLyric
-                    }
-                });
-                return obj
-            },
-            changeCurrentTime(newTime) {
-                this.currentTime = newTime
-            },
-            redirectTime(newTime) {
-                this.wavesurfer.play(newTime);
             },
             regionLoop() {
                 // Execute loop
                 this.wavesurfer.play(this.currentRegion.start);
-                if (this.wavesurfer.paused) {
-                    this.wavesurfer.play()
-                }
                 this.currentRegion.once('out', () => {
                     // Update current play time
                     this.realPlayTime = this.audioElt.currentTime;
@@ -264,25 +306,13 @@
                         this.realPlayTime >= this.currentRegion.start
                     ) {
                         this.wavesurfer.pause();
+                        // this.resetRegionPopover();
                     }
                 });
             },
-            switchAudio() {
-                // 生成歌词
-                this.needGenLyric = true;
-
-                // 生成波形和控件
-                this.regionData = "";
-                this.wavesurfer.clearRegions();
-                this.needGenWave = true;
-            },
             genPlayer() {
-                if (this.needGenLyric) {
-                    this.needGenLyric = false;
-                    // eslint-disable-next-line no-console
-                    // this.originLyric = this.aplayer.lyric.lrc;
-                    // this.originTLyric = this.aplayer.lyric.tlrc
-                }
+                this.currentName = this.aplayer.currentMusic.name;
+                this.currentOthers = this.aplayer.currentMusic.others;
                 if (this.needGenWave) {
                     this.needGenWave = false;
                     this.genWave()
@@ -298,9 +328,7 @@
                 });
 
                 // load exist regions
-                if (this.regionData) {
-                    this.loadRegions(this.regionData);
-                }
+                // this.loadRegions();
 
                 this.wavesurfer.on('region-click', (region, e) => {
                     this.currentRegion = region;
@@ -308,17 +336,22 @@
                     e.stopPropagation();
                     // Play on click, loop on ctrl click
                     // e.ctrlKey ? region.playLoop(region.start) : region.play(region.start);
-                    e.ctrlKey ? this.isLoop = true : this.isLoop = false;
+                    // e.ctrlKey ? this.isLoop = true : this.isLoop = false;
+                    if (e.ctrlKey)
+                        this.isLoop = true;
                     this.regionLoop()
                 });
                 this.wavesurfer.on('region-in', this.showNote);
             },
             /**
-             * Save annotations to server
+             * Save regions to server
              */
             saveRegions() {
+                if (!this.wavesurfer.regions.list) {
+                    return
+                }
                 const regions = this.wavesurfer.regions.list;
-                this.regionData = JSON.stringify(
+                const regionData = JSON.stringify(
                     Object.keys(regions).map(function (id) {
                         const region = regions[id];
                         return {
@@ -329,10 +362,13 @@
                         };
                     })
                 );
-                const audioBody = new FormData();
-                audioBody.set('regions', "'" + this.regionData + "'");
-                this.$axios.put("/audio/" + this.aplayer.currentMusic.id +
-                    "?token=" + localStorage.getItem("token"), audioBody).then(res => {
+                // 保存Region数据
+                this.aplayer.currentMusic.regions = regionData;
+                this.$axios.put("/audio/region" +
+                    "?token=" + localStorage.getItem("token"), {
+                    id: this.aplayer.currentMusic.id,
+                    regions: regionData
+                }).then(res => {
                     if (res.data.code === 1) {
                         this.$message({
                             showClose: true,
@@ -351,14 +387,24 @@
             /**
              * Load regions from server
              */
-            loadRegions(regions) {
+            loadRegions() {
+                if (this.aplayer.currentMusic.regions) {
+                    this.setRegions(JSON.parse(this.aplayer.currentMusic.regions));
+                }
+            },
+            setRegions(regions) {
                 regions.forEach(region => {
                     region.color = this.randomColor(0.1);
                     this.wavesurfer.addRegion(region);
                 });
             },
+            clearRegions() {
+                this.wavesurfer.clearRegions();
+            },
             deleteRegion() {
-                this.wavesurfer.regions.list[this.currentRegion.id].remove();
+                if (this.wavesurfer.regions.list) {
+                    this.wavesurfer.regions.list[this.currentRegion.id].remove();
+                }
                 this.resetRegionPopover()
             },
             /**
@@ -377,6 +423,7 @@
                         note: this.regionForm.note
                     }
                 });
+                this.currentNote = this.regionForm.note;
                 this.resetRegionPopover()
             },
             resetRegionPopover() {
@@ -387,13 +434,20 @@
                     note: ""
                 };
             },
+            genRegions() {
+                const regions = this.extractRegions(
+                    this.wavesurfer.backend.getPeaks(2048),
+                    this.wavesurfer.getDuration()
+                );
+                this.setRegions(regions)
+            },
             /**
              * Extract regions separated by silence
              */
             extractRegions(peaks, duration) {
                 // Silence params
-                let minValue = 0.0015;
-                let minSeconds = 0.25;
+                let minValue = 0.005;
+                let minSeconds = 0.5;
 
                 let length = peaks.length;
                 let coef = duration / length;
@@ -472,10 +526,7 @@
              * Display annotation
              */
             showNote(region) {
-                if (!this.showNote.el) {
-                    this.showNote.el = document.querySelector('#regionNote');
-                }
-                this.showNote.el.textContent = region.data.note || '';
+                this.currentNote = region.data.note || '';
             },
             getDownloadURL(id, type, path) {
                 if (path !== "") {
@@ -494,23 +545,20 @@
 
 <style lang="scss" scoped>
     .audio-player-control {
-        /*margin-top: 60px;*/
+        padding: 1rem 1rem 0;
+
+        .region-note {
+            /*height: 1rem;*/
+        }
+
+        .others-container {
+            max-height: 18rem;
+            overflow: auto;
+        }
     }
 
-    .region-note {
-        height: 1rem;
-    }
-
-    .audio-player-control {
-        margin: 1rem 1rem;
-    }
-
-    .grid-content {
-        margin: 0 0 1rem;
-    }
-
-    .lyric-container {
-        height: 100%;
+    .waveform-container {
+        height: 200px;
     }
 
 </style>
