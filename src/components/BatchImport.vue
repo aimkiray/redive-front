@@ -52,6 +52,11 @@
                 isImporting: 0,
             }
         },
+        computed: {
+            getToken() {
+                return localStorage.getItem("token")
+            },
+        },
         methods: {
             onSubmit() {
                 this.errorData = {};
@@ -97,9 +102,6 @@
                         });
                     }
                 })
-            },
-            getToken() {
-                return localStorage.getItem("token")
             },
         },
         beforeDestroy() {

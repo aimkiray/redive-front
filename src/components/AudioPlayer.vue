@@ -90,8 +90,11 @@
                     <el-button round @click="clearRegions">重置</el-button>
                 </el-row>
 
-                <el-row>
-                    <p class="region-note" v-text="currentNote"></p>
+                <el-row class="region-note" v-if="currentNote !== ''">
+                    <div style="font-size: 18px; margin-bottom: 2px">Note</div>
+                    <el-card shadow="hover">
+                        {{ currentNote }}
+                    </el-card>
                 </el-row>
 
             </el-col>
@@ -262,6 +265,7 @@
                 });
             },
             switchAudio() {
+                this.currentNote = "";
                 // 清空 Regions，生成波形
                 this.clearRegions();
                 this.needGenWave = true;
@@ -548,10 +552,11 @@
         padding: 1rem 1rem 0;
 
         .region-note {
-            /*height: 1rem;*/
+            margin-top: 20px;
         }
 
         .others-container {
+            margin-top: 20px;
             max-height: 18rem;
             overflow: auto;
         }

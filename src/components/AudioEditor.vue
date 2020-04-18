@@ -56,7 +56,7 @@
                     <el-input
                             type="textarea"
                             :autosize="{ minRows: 4 }"
-                            placeholder="音频相关信息，在播放器显示，支持Markdown语法"
+                            placeholder="音频相关信息，支持Markdown语法"
                             v-model="audioForm.others">
                     </el-input>
                 </el-form-item>

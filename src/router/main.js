@@ -8,6 +8,7 @@ import Playlist from "../components/Playlist";
 import BatchImport from "../components/BatchImport";
 import Equipment from "../components/Equipment";
 import User from "../components/User";
+import DataManage from "../components/DataManage";
 
 import store from '../store/main'
 
@@ -57,6 +58,11 @@ let router = new VueRouter({
                     path: 'playlist-editor',
                     name: 'playlist-editor',
                     component: Playlist
+                },
+                {
+                    path: 'data-manage',
+                    name: 'data-manage',
+                    component: DataManage
                 }
             ]
         },

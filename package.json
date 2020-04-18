@@ -3,9 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "serve": "vue-cli-service serve",
-    "build": "vue-cli-service build",
-    "lint": "vue-cli-service lint"
+    "serve": "vue-cli-service serve --open",
+    "build": "vue-cli-service build --report",
+    "lint": "vue-cli-service lint src"
   },
   "dependencies": {
     "@moefe/vue-aplayer": "https://github.com/aimkiray/vue-aplayer.git",
