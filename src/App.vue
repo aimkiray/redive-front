@@ -74,11 +74,11 @@
             },
             logOut() {
                 localStorage.removeItem("token");
-                this.$message({
-                    showClose: true,
-                    message: "level down!",
-                    type: "info"
-                });
+                // this.$message({
+                //     showClose: true,
+                //     message: "level down!",
+                //     type: "info"
+                // });
                 this.$router.push({name: "user"});
                 this.showLogOut = false;
             },

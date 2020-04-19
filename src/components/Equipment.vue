@@ -41,6 +41,9 @@
         data() {
             return {};
         },
+        created() {
+            this.$router.push({name: "audio-table"});
+        },
         methods: {
             handleSelect(key) {
                 this.$router.push({

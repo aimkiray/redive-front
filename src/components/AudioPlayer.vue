@@ -293,8 +293,8 @@
                             note: ""
                         }
                     });
+                    this.wavesurfer.play(this.regionStart);
                     this.regionStart = null;
-                    this.wavesurfer.pause();
                 }
             },
             regionLoop() {

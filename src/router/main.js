@@ -36,18 +36,14 @@ let router = new VueRouter({
             component: Equipment,
             children: [
                 {
-                    path: '',
-                    redirect: 'audio-table'
+                    path: 'audio-table',
+                    name: 'audio-table',
+                    component: AudioTable
                 },
                 {
                     path: 'audio-editor',
                     name: 'audio-editor',
                     component: AudioEditor
-                },
-                {
-                    path: 'audio-table',
-                    name: 'audio-table',
-                    component: AudioTable
                 },
                 {
                     path: 'batch-import',
