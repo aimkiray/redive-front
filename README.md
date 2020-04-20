@@ -1,41 +1,48 @@
 ReDive 是一个支持音乐播放，嘤语学习的多功能复读机（CAI不是什么高级焊工养成游戏= =），使用前后端分离架构，前端基于 Vue.js 全家桶，后端基于 Golang 编写。
 
-## Feature
+## 目录
 
-音频上传
-音频/歌单管理
-导入网易歌单（物理保存免费歌曲的 MP3/封面/歌词/翻译 到服务器，永久可用）
+[TOC]
 
-音乐播放器
-滚动歌词和翻译
-显示音频波形
+## Demo
 
-AB 复读
-选区复读
-自动断句
-洗脑循环
+http://re.debuff.top:8000
 
-选区文字（可记录 笔记/翻译 等相关信息）
-选区保存/读取
+用户名和密码都是 admin。Demo 服务器是个土豆，不仅慢（5M）还**屏蔽**了 **上传/导入/修改** 功能，并且定期失忆，请给土豆多一点理解和包容（限于带宽，波形需要等一小会）～
 
-Docker 部署
+## To Do
 
-简~~陋~~洁的 UI 设计
-
-华丽的 UI 设计
-移动端完整适配（现在是丢了个 aplayer，其实也能用）
-Native app
+- [x] 管理
+	- [x] 音频上传
+	- [x] 音频/歌单管理
+	- [x] 导入网易歌单（下载 MP3/封面/歌词/翻译 到服务器，避免下架。此功能也可作为下载器）
+- [x] 播放器
+	- [x] 滚动歌词和翻译
+	- [x] 显示音频波形
+- [x] 复读机
+	- [x] AB 复读
+	- [x] 选区复读（在波形上选区）
+	- [x] 自动断句
+	- [x] 洗脑循环
+	- [x] 选区文字（可记录 笔记/翻译 等相关信息）
+	- [x] 选区保存/读取
+- [x] Docker 部署
+- [x] 简~~陋~~洁的 UI
+- [x] 响应式布局（移动端有另外的设计）
+- [ ] 华丽的 UI
+- [ ] 移动端完整适配（现在是个 aplayer，其实也能用）
+- [ ] Native app
 
 
 ## 食用方法
 
-> 餐具：1核2G, CentOS 7.3
+> 餐具：1核2G, CentOS 7.3（阿里云轻量）
 
-### 1. 编译打包（可选）
+### 编译打包（可选）
 
-对于开发者来说，使用 Docker 编译源代码显然更方便。但是对于一般用户而言，编译所依赖的众多工具会占用相当大的空间，漫长的等候也会降低使用体验。如果你不想编译，可以跳过此步骤，去 [release](https://github.com/aimkiray/redive-front/releases) 页面下载编译好的可执行文件和静态文件。
+对于开发者来说，使用 Docker 编译源代码显然更方便。但是对于一般用户而言，编译所依赖的众多工具会占用相当大的空间，漫长的等候也会降低使用体验。[release](https://github.com/aimkiray/redive-front/releases) 页面有编译好的可执行文件和静态文件，下载解压即可。
 
-另外，后端配置文件位于`conf/config.ini`，需要修改的有用户名和密码（user 字段），默认都是`admin`，还有`JWT_SECRET`，用于生成`token`的密钥。
+另外，后端配置文件位于`conf/config.ini`，需要修改的部分有用户名和密码（user 字段），默认都是`admin`，还有`JWT_SECRET`，用于生成`token`的密钥。
 
 新建目录，Clone 前端和后端源代码。
 
@@ -45,11 +52,11 @@ $ git clone --depth 1 https://github.com/aimkiray/redive-back.git
 $ git clone --depth 1 https://github.com/aimkiray/redive-front.git
 ```
 
-后端程序基于 Golang 开发，可指定使用`cgo`编译器，生成名为`redive-back`的二进制文件`cgo`创建的可执行文件在没有外部依赖时，不包含动态链接，可适应多种生产环境。
+后端程序基于 Golang 开发，编译时指定`cgo`，生成名为`redive-back`的二进制文件，通过`cgo`创建的可执行文件不包含动态链接，可适应多种生产环境。
 
 ```bash
 $ cd redive-back
-$ CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o redive-back.
+$ CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o redive-back .
 ```
 
 前端基于开袋即食的 vue-cli，使用 yarn 或 npm 打包，生成的静态文件在`dist`目录中。
@@ -60,7 +67,7 @@ $ yarn install
 $ yarn build
 ```
 
-### 2. 安装 Docker
+### 安装 Docker
 
 先装你的 Docker CE，其他环境请看官方文档。
 
@@ -79,12 +86,13 @@ $ sudo systemctl start docker
 $ sudo vim /etc/docker/daemon.json
 ```
 
-使用网易的镜像源，写入如下内容。
+选择 USTC 的镜像源，写入如下内容。
 
 ```json
 {
   "registry-mirrors": [
-    "https://hub-mirror.c.163.com"
+    "https://docker.mirrors.ustc.edu.cn",
+    "https://registry.docker-cn.com"
   ]
 }
 ```
@@ -94,42 +102,45 @@ $ sudo vim /etc/docker/daemon.json
 ```bash
 $ sudo curl -L "https://github.com/docker/compose/releases/download/1.25.5/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
 $ sudo chmod +x /usr/local/bin/docker-compose
+# optional
+$ sudo ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
 ```
 
-### 3. 准备 Docker 镜像（可选）
+### 准备 Docker 镜像（可选）
 
 > 该部分生成的文件已包含在 release 文件中，普通用户只需解压即可。
 
 ~~虽然通常的做法是前后端各用各的容器，使用`docker-compose`统一管理，但为了省去一些麻烦，我们完全可以把它们盛在同一个容器里，这样的吃法也被称为咖喱饭，宛如魔法一般的咖哩，煮上一大锅丢冰箱里可以连吃三天哟！~~
 
-试过上面的方案，感觉不太优雅，还是各用各的容器好一些。
+上面的方法不太优雅，还是各用各的容器好一些。
 
 > 这里提供一个通用的方法，如果你的餐桌不够大，请考虑能否吃到 Docker。
 
-新建一个空的工作目录，创建后端的 Dockerfile 文件，写入如下内容。
+新建一个空的工作目录，创建后端镜像的 Dockerfile 文件，写入如下内容。
 
 ```dockerfile
-FROM scratch
+FROM alpine:latest
 
 WORKDIR /redive
 COPY ./redive-back /redive
 
-ENV RUN_MODE=release
+ENV GIN_MODE=release
 
 EXPOSE 2333
 CMD ["./redive-back"]
 ```
 
-`scratch` 是一个空镜像，意味着从第一层开始编写指令，Go 编写的程序常用此方法制作镜像节约空间，以适应微服务的需求。
+~~`scratch` 是一个空镜像，意味着从第一层开始编写指令，Go 编写的程序常用此方法制作镜像节约空间，以适应微服务的需求。~~因缺少部分依赖，换用同样很小的`alpine linux`。
 
-提前将`nginx`和`redis`的官方镜像 pull 下来备用。
+提前将`nginx`和`redis`等官方镜像 pull 下来备用。
 
 ```bash
+$ sudo docker pull alpine:latest
 $ sudo docker pull nginx:latest
 $ sudo docker pull redis:latest
 ```
 
-### 4. 工作目录（可选）
+### 工作目录（可选）
 
 > 该部分准备的文件已包含在 release 文件中，普通用户只需解压即可。
 
@@ -162,11 +173,12 @@ http {
 
     access_log  /var/log/nginx/access.log  main;
 
-    sendfile            on;
-    tcp_nopush          on;
-    tcp_nodelay         on;
-    keepalive_timeout   65;
-    types_hash_max_size 2048;
+    sendfile             on;
+    tcp_nopush           on;
+    tcp_nodelay          on;
+    keepalive_timeout    65;
+    types_hash_max_size  2048;
+    client_max_body_size 100m;
 
     include             /etc/nginx/mime.types;
     default_type        application/octet-stream;
@@ -218,13 +230,13 @@ services:
     build: .
     restart: "always"
     volumes:
-      - ./static:/redive/static
+      - ./data/files:/redive/static
       - ./config.ini:/redive/conf/config.ini
   redis:
     image: "redis:latest"
     restart: "always"
     volumes:
-      - ./data:/data
+      - ./data/db:/data
     command: redis-server --appendonly yes
 ```
 
@@ -234,11 +246,12 @@ services:
 $ sudo chown -R $USER:$USER .
 ```
 
-### 5. 我开动了
+### 我开动了
 
-进入工作目录或 release 解压后的根目录，执行如下指令后台启动容器。
+进入工作目录或 release 解压后的 redive 目录，修改`docker-compose.yml`中的端口，`config.ini`中的用户信息。执行如下指令启动容器。
 
 ```bash
+$ sudo docker-compose build --no-cache
 $ sudo docker-compose up -d
 ```
 
@@ -253,14 +266,56 @@ Enjoy yourself~
 
 ## 料理指南
 
-> 炊具（默认最新）：node, vue-cli, golang
+### Front-end
 
-To Be Continued...后端部分你可以先参考[这个](https://github.com/EDDYCJY/blog)
+ReDive 通过 Vue CLI 搭建前端脚手架，并且尽可能的采用默认配置快速开发，代码使用 ES2015 语法。
 
-## Tips
+ReDive 是单页面应用，路由使用 Vue Router 实现，全局数据交由 Vuex 管理。
 
-Alpha 版本由于时间紧迫没有完全测试~~完全没有测试~~，但本人师承育碧，尝试中发现什么 feature 或有什么想法欢迎提 issue 或 PR，以便改进。
-Demo 服务器是个土豆，不仅慢还屏蔽了 上传/导入 功能，请给土豆多一点理解和包容。
+音频波形生成功能使用了 [wavesurfer.js](https://github.com/katspaugh/wavesurfer.js)，进行了一些修改以适应特殊需求。
+
+为了加快开发速度，音频播放器基于 [vue-aplayer](https://github.com/MoePlayer/vue-aplayer) 二次开发适配了桌面端，移动端暂时还是原本的样子，另外新增了歌词翻译和滚动功能。修改后的代码仓库已在下方列出。
+
+### Back-end
+
+后端基于 Golang 开发，通过 Gin 框架搭建 REST API，爬虫和文件下载使用原生方法实现。
+
+根据需求，使用 Redis 作为 Key/Value 数据库，并通过 AOF 机制持久化数据，下面是数据结构示意图（不是E-R图，箭头也没有特别的意思）。数据库操作由 [go-redis](https://github.com/go-redis/redis) 提供，项目中的 model 文件实际上没有用到，但是可以用来查阅字段名称。
+
+![](./docs/redis_mod.png)
+
+## 图片展示
+
+- 音乐播放
+
+![](https://github.com/aimkiray/redive-front/raw/master/docs/music-player-mod.png)
+
+- 嘤语学习
+
+![](https://github.com/aimkiray/redive-front/raw/master/docs/english-player-mod.png)
+
+- 音频列表
+
+![](https://github.com/aimkiray/redive-front/raw/master/docs/audio-table.png)
+
+- 歌单管理
+
+![](https://github.com/aimkiray/redive-front/raw/master/docs/playlist.png)
+
+- 新增歌曲
+
+![](https://github.com/aimkiray/redive-front/raw/master/docs/audio-editor.png)
+
+- 导入歌曲
+
+![](https://github.com/aimkiray/redive-front/raw/master/docs/batch-import.png)
+
+## 碎碎念
+
+- Alpha 版本由于时间紧迫~~完全没有测试~~没有完全测试，但本人师承育碧，品质保证，尝试中发现什么 feature 或有什么想法欢迎提 issue 或 PR，以便改进。
+- 例如，某个 feature 是在某些情况下音频跟不上波形，然后你就可以计算你的无线音频设备（蓝牙，chromecast 等）输出延迟了（有时间会修的咕）。
+- 最近忙着面试和毕业，只会修 bug，等稳定后再完善功能。
+- 至于为何叫这个名字，当然是因为它本来就是个~~缝合~~焊接怪呀～
 
 ## Reference
 
@@ -269,21 +324,29 @@ Demo 服务器是个土豆，不仅慢还屏蔽了 上传/导入 功能，请给
 后端
 
 [Golang](https://github.com/golang)
+
 [Gin](https://github.com/gin-gonic/gin)
+
 [go-redis](https://github.com/go-redis/redis)
+
 [jwt-go](https://github.com/dgrijalva/jwt-go)
 
 前端
 
 [Vue.js](https://github.com/vuejs)
+
 [vue-aplayer](https://github.com/aimkiray/vue-aplayer)
+
 [wavesurfer.js](https://github.com/aimkiray/wavesurfer.js)
+
 [element-ui](https://element.eleme.cn/)
+
 [marked](https://github.com/markedjs/marked)
 
 参考
 
 [煎鱼的博客](https://github.com/EDDYCJY/blog)
+
 [LabAC](https://github.com/yangsoon/LabAC)
 
 ## 以下是复读 time
