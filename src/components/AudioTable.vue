@@ -113,7 +113,7 @@
                 })
             },
             getDownloadURL(id, type, path) {
-                if (path !== "") {
+                if (path !== undefined && path !== "") {
                     if (path.indexOf("http") === -1) {
                         return this.baseURL + "/audio/download/" + id + "/" + type
                     } else {

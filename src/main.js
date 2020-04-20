@@ -20,7 +20,7 @@ Vue.use(APlayer, {
 });
 
 const instance = axios.create({
-  baseURL: 'http://127.0.0.1/api',
+  baseURL: '/api',
   timeout: 100000,
 });
 Vue.prototype.$axios = instance;

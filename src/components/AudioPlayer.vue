@@ -20,68 +20,72 @@
 
         <el-row class="audio-player-control">
 
-            <el-col :xs="24" :sm="12" class="audio-player-control">
+            <el-col :xs="24" :sm="12">
 
                 <el-row>
-                    <el-button v-if="!isPlayed" round @click="audioControl">播放</el-button>
-                    <el-button v-if="isPlayed" round @click="audioControl">暂停</el-button>
-                    <el-button round v-if="isLoop" @click="loopControl">单次</el-button>
-                    <el-button round v-if="!isLoop" @click="loopControl">循环</el-button>
-                    <el-button round @click="markA">A</el-button>
-                    <el-button round @click="markB">B</el-button>
-                    <el-button round @click="genRegions">自动断句</el-button>
+                    <el-col :sm="24" :md="10">
+                        <el-button v-if="!isPlayed" round @click="audioControl">播放</el-button>
+                        <el-button v-if="isPlayed" round @click="audioControl">暂停</el-button>
+                        <el-button round v-if="isLoop" @click="loopControl">单次</el-button>
+                        <el-button round v-if="!isLoop" @click="loopControl">循环</el-button>
+                        <div style="display: inline-block;margin-left: 10px" v-if="regionForm.end">
+                            <el-popover
+                                    placement="bottom"
+                                    width="260"
+                                    trigger="click"
+                                    @after-leave="resetRegionPopover"
+                                    ref="regionPopover">
+                                <el-form :model="regionForm"
+                                         ref="regionForm"
+                                         label-width="40px"
+                                         label-position="top"
+                                         class="region-form-container">
+                                    <el-row :gutter="10">
+                                        <el-col :sm="12">
+                                            <el-form-item label="Start" size="mini">
+                                                <el-input-number
+                                                        v-model="regionForm.start"
+                                                        style="display: block"
+                                                        controls-position="right"
+                                                        :precision="1"
+                                                        :step="0.1">
+                                                </el-input-number>
+                                            </el-form-item>
+                                        </el-col>
+                                        <el-col :sm="12">
+                                            <el-form-item label="End" size="mini">
+                                                <el-input-number
+                                                        v-model="regionForm.end"
+                                                        style="display: block"
+                                                        controls-position="right"
+                                                        :precision="1"
+                                                        :step="0.1">
+                                                </el-input-number>
+                                            </el-form-item>
+                                        </el-col>
+                                    </el-row>
+                                    <el-form-item label="Note" size="mini">
+                                        <el-input
+                                                type="textarea"
+                                                v-model="regionForm.note"
+                                                rows="4">
+                                        </el-input>
+                                    </el-form-item>
+                                </el-form>
+                                <div style="text-align: right; margin: 0">
+                                    <el-button size="mini" type="error" @click="deleteRegion">删除</el-button>
+                                    <el-button size="mini" type="primary" @click="editRegion">保存</el-button>
+                                </div>
+                                <el-button round slot="reference">修改</el-button>
+                            </el-popover>
+                        </div>
+                    </el-col>
 
-                    <div style="display: inline-block;margin-left: 10px" v-if="regionForm.end">
-                        <el-popover
-                                placement="bottom"
-                                width="260"
-                                trigger="click"
-                                @after-leave="resetRegionPopover"
-                                ref="regionPopover">
-                            <el-form :model="regionForm"
-                                     ref="regionForm"
-                                     label-width="40px"
-                                     label-position="top"
-                                     class="region-form-container">
-                                <el-row :gutter="10">
-                                    <el-col :sm="12">
-                                        <el-form-item label="Start" size="mini">
-                                            <el-input-number
-                                                    v-model="regionForm.start"
-                                                    style="display: block"
-                                                    controls-position="right"
-                                                    :precision="1"
-                                                    :step="0.1">
-                                            </el-input-number>
-                                        </el-form-item>
-                                    </el-col>
-                                    <el-col :sm="12">
-                                        <el-form-item label="End" size="mini">
-                                            <el-input-number
-                                                    v-model="regionForm.end"
-                                                    style="display: block"
-                                                    controls-position="right"
-                                                    :precision="1"
-                                                    :step="0.1">
-                                            </el-input-number>
-                                        </el-form-item>
-                                    </el-col>
-                                </el-row>
-                                <el-form-item label="Note" size="mini">
-                                    <el-input
-                                            type="textarea"
-                                            v-model="regionForm.note"
-                                            rows="4">
-                                    </el-input>
-                                </el-form-item>
-                            </el-form>
-                            <div style="text-align: right; margin: 0">
-                                <el-button size="mini" type="error" @click="deleteRegion">删除</el-button>
-                                <el-button size="mini" type="primary" @click="editRegion">保存</el-button>
-                            </div>
-                            <el-button round slot="reference">修改</el-button>
-                        </el-popover>
-                    </div>
+                    <el-col :sm="24" :md="14" class="loop-button">
+                        <el-button round @click="markA">A</el-button>
+                        <el-button round @click="markB">B</el-button>
+                        <el-button round @click="genRegions">自动断句</el-button>
+                    </el-col>
                 </el-row>
 
                 <el-row style="margin-top: 20px">
@@ -160,24 +164,25 @@
                 renderMd: null,
                 currentOthers: "",
                 marked: null,
-                isList: false,
+                isList: true,
                 isLyric: false,
             }
         },
         created() {
             // 获取歌单列表
             this.$axios.get("/playlist").then(res => {
-                if (res.data.code === 1 && res.data.data) {
+                if (res.data.code === 1 && res.data.data && res.data.data.length !== 0) {
                     this.playlistData = res.data.data;
+                    // 默认歌单显示
                     this.playlistID = this.playlistData[0].id;
                 }
             });
 
-            // 加载最新歌单
+            // 加载最新的歌单
             this.getAudio()
 
-            // 初始化波形
             this.$nextTick(() => {
+                // 初始化波形
                 this.wavesurfer = WaveSurfer.create({
                     container: '#waveform',
                     height: 150,
@@ -256,8 +261,8 @@
                     } else {
                         this.$message({
                             showClose: true,
-                            message: "音频加载失败，内部错误。",
-                            type: "error"
+                            message: "空空如也。" + res.data.msg,
+                            type: "info"
                         });
                     }
                 }).catch(err => {
@@ -551,8 +556,16 @@
     .audio-player-control {
         padding: 1rem 1rem 0;
 
-        .region-note {
+        .loop-button {
             margin-top: 20px;
+
+            @media (min-width: 992px) {
+                margin-top: 0;
+            }
+        }
+
+        .region-note {
+            margin: 20px 20px 0 0;
         }
 
         .others-container {

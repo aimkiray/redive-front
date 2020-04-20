@@ -111,6 +111,8 @@
                 this.$axios.get("/playlist").then(res => {
                     if (res.data.code === 1 && res.data.data) {
                         this.playlistData = res.data.data;
+                    } else {
+                        this.playlistData = []
                     }
                 });
             }
