@@ -5,7 +5,7 @@
                  label-position="right" label-width="40px">
             <div class="audio-form-tips">
                 <i class="el-icon-question"></i>
-                向服务器上传本地音频。磁带，名字和MP3文件是必填参数，其他随意。另外，请等待文件上传完成再离开！！（毕竟我只是个没有感情的复读机。
+                上传本地音频。磁带，名字和MP3文件是必填参数，其他随意。另外，请等待文件上传完成再离开！！（毕竟我只是个没有感情的复读机。
             </div>
 
             <el-row :gutter="20">
@@ -83,7 +83,7 @@
                 </el-col>
                 <el-col :xs="24" :sm="12">
                     <el-alert
-                            title="支持上传mp3/lrc/jpg/png格式文件，最大100MB，封面&歌词&本体需要一起上传。歌词翻译的文件名包含'trans'字样。"
+                            title="支持上传mp3/lrc/jpg/png格式文件，单个文件不超过100MB，封面&歌词&本体需要一起上传。歌词翻译的文件名包含'trans'字样。"
                             type="warning"
                             style="margin-top: 10px">
                     </el-alert>
