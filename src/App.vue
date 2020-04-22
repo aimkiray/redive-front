@@ -12,7 +12,7 @@
                 <el-menu-item index="equipment">
                     <span slot="title">磁带</span>
                 </el-menu-item>
-                <el-menu-item @click="handleUrl('https://github.com/aimkiray/reosu')">
+                <el-menu-item @click="handleUrl('https://github.com/aimkiray/redive-front')">
                     <span slot="title">Github</span>
                 </el-menu-item>
 

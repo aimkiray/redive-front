@@ -14,8 +14,10 @@
         </el-row>
 
         <div class="waveform-container">
-            <div id="wave-timeline"></div>
-            <div id="waveform"></div>
+
+            <div class="wave-timeline" id="wave-timeline"></div>
+            <div class="waveform" id="waveform"></div>
+
         </div>
 
         <el-row class="audio-player-control">
@@ -90,7 +92,7 @@
 
                 <el-row style="margin-top: 20px">
                     <el-button round @click="loadRegions">读档</el-button>
-                    <el-button round @click="saveRegions">存档</el-button>
+                    <el-button round @click="saveWaveData">存档</el-button>
                     <el-button round @click="clearRegions">重置</el-button>
                 </el-row>
 
@@ -104,7 +106,7 @@
             </el-col>
 
             <el-col :xs="24" :sm="12">
-                <div v-if="!isList && !isLyric" v-html="getOthers" class="others-container"></div>
+                <div v-if="(!isList && !isLyric) || this.audioList.length === 1" v-html="getOthers" class="others-container"></div>
             </el-col>
         </el-row>
 
@@ -180,52 +182,25 @@
 
             // 加载最新的歌单
             this.getAudio()
+        },
+        mounted() {
+            // 初始化波形
+            // this.initWave();
 
-            this.$nextTick(() => {
-                // 初始化波形
-                this.wavesurfer = WaveSurfer.create({
-                    container: '#waveform',
-                    height: 150,
-                    pixelRatio: 1,
-                    scrollParent: true,
-                    normalize: true,
-                    minimap: true,
-                    backend: 'MediaElement',
-                    autoplay: false,
-                    removeMediaElementOnDestroy: false,
-                    reloadMediaElement: false,
-                    loopSelection: false,
-                    playbackRate: this.audioElt.playbackRate,
-                    volume: this.audioElt.volume,
-                    plugins: [
-                        RegionsPlugin.create(),
-                        MinimapPlugin.create({
-                            height: 30,
-                            waveColor: '#ddd',
-                            progressColor: '#999',
-                            cursorColor: '#999'
-                        }),
-                        TimelinePlugin.create({
-                            container: '#wave-timeline'
-                        })
-                    ]
-                });
-
-                this.renderMd = new marked.Renderer();
-                this.marked = marked.setOptions({
-                    renderer: this.renderMd,
-                    gfm: true,
-                    tables: true,
-                    breaks: false,
-                    pedantic: false,
-                    sanitize: false,
-                    smartLists: true,
-                    smartypants: false,
-                    highlight: function(code) {
-                        return require("highlight.js").highlightAuto(code).value;
-                    },
-                });
-            })
+            this.renderMd = new marked.Renderer();
+            this.marked = marked.setOptions({
+                renderer: this.renderMd,
+                gfm: true,
+                tables: true,
+                breaks: false,
+                pedantic: false,
+                sanitize: false,
+                smartLists: true,
+                smartypants: false,
+                highlight: function (code) {
+                    return require("highlight.js").highlightAuto(code).value;
+                },
+            });
         },
         computed: {
             baseURL() {
@@ -257,7 +232,10 @@
                             audioRaw[i].lrc = this.getDownloadURL(audioID, "lrc", audioRaw[i].lrc);
                             audioRaw[i].tlrc = this.getDownloadURL(audioID, "tlrc", audioRaw[i].tlrc);
                         }
+                        this.aplayer.currentMusic.peaks = null
+                        this.aplayer.currentMusic.duration = null
                         this.audioList = audioRaw
+                        this.needGenWave = true;
                     } else {
                         this.$message({
                             showClose: true,
@@ -327,17 +305,78 @@
                     this.genWave()
                 }
             },
+            initWave() {
+                this.wavesurfer = WaveSurfer.create({
+                    container: '#waveform',
+                    height: 150,
+                    pixelRatio: 1,
+                    barWidth: 1,
+                    barGap: 2,
+                    cursorWidth: 2,
+                    cursorColor: "#000",
+                    progressColor: "#7FCCD9",
+                    scrollParent: true,
+                    normalize: true,
+                    backend: 'MediaElement',
+                    autoplay: false,
+                    removeMediaElementOnDestroy: true,
+                    reloadMediaElement: true,
+                    loopSelection: false,
+                    playbackRate: this.audioElt.playbackRate,
+                    volume: this.audioElt.volume,
+                    plugins: [
+                        RegionsPlugin.create(),
+                        MinimapPlugin.create({
+                            height: 30,
+                            waveColor: '#ddd',
+                            progressColor: '#7FCCD9',
+                            cursorColor: '#7FCCD9'
+                        }),
+                        TimelinePlugin.create({
+                            container: '#wave-timeline'
+                        })
+                    ]
+                });
+            },
             genWave() {
-                this.wavesurfer.load(this.audioElt.audio);
+                if (this.wavesurfer !== null) {
+                    // 踢掉现有连接
+                    this.wavesurfer.cancelAjax();
 
-                /* Regions */
+                    // 当场去世
+                    this.wavesurfer.destroy();
+                }
+
+                // 开始新的...
+                this.initWave();
+                if (this.aplayer.currentMusic.peaks && this.aplayer.currentMusic.duration) {
+                    this.wavesurfer.load(
+                        this.audioElt.audio,
+                        JSON.parse(this.aplayer.currentMusic.peaks),
+                        null,
+                        JSON.parse(this.aplayer.currentMusic.duration)
+                    );
+                    // this.wavesurfer.initPlugin('minimap')
+                    // this.isShowWave = true;
+                } else {
+                    this.wavesurfer.load(this.audioElt.audio);
+                }
+
+                // this.wavesurfer.on('loading', progress => {
+                //     // eslint-disable-next-line no-console
+                //     console.log(progress)
+                // });
+                //
+                // this.wavesurfer.on('waveform-ready', () => {
+                //     this.isShowWave = true;
+                // });
 
                 this.wavesurfer.enableDragSelection({
                     color: this.randomColor(0.1)
                 });
 
                 // load exist regions
-                // this.loadRegions();
+                this.loadRegions();
 
                 this.wavesurfer.on('region-click', (region, e) => {
                     this.currentRegion = region;
@@ -353,14 +392,12 @@
                 this.wavesurfer.on('region-in', this.showNote);
             },
             /**
-             * Save regions to server
+             * Save data to server
              */
-            saveRegions() {
-                if (!this.wavesurfer.regions.list) {
-                    return
-                }
+            saveWaveData() {
                 const regions = this.wavesurfer.regions.list;
-                const regionData = JSON.stringify(
+                // 保存复读区间
+                this.aplayer.currentMusic.regions = JSON.stringify(
                     Object.keys(regions).map(function (id) {
                         const region = regions[id];
                         return {
@@ -371,12 +408,15 @@
                         };
                     })
                 );
-                // 保存Region数据
-                this.aplayer.currentMusic.regions = regionData;
-                this.$axios.put("/audio/region" +
+                // 保存波形数据
+                this.aplayer.currentMusic.peaks = JSON.stringify(this.wavesurfer.backend.getPeaks(this.wavesurfer.getDuration() * 2));
+                this.aplayer.currentMusic.duration = JSON.stringify(this.wavesurfer.backend.getDuration());
+                this.$axios.put("/audio/data" +
                     "?token=" + localStorage.getItem("token"), {
                     id: this.aplayer.currentMusic.id,
-                    regions: regionData
+                    regions: this.aplayer.currentMusic.regions,
+                    peaks: this.aplayer.currentMusic.peaks,
+                    duration: this.aplayer.currentMusic.duration,
                 }).then(res => {
                     if (res.data.code === 1) {
                         this.$message({
@@ -445,7 +485,7 @@
             },
             genRegions() {
                 const regions = this.extractRegions(
-                    this.wavesurfer.backend.getPeaks(2048),
+                    this.wavesurfer.backend.getPeaks(this.wavesurfer.getDuration() * 2),
                     this.wavesurfer.getDuration()
                 );
                 this.setRegions(regions)
@@ -455,7 +495,7 @@
              */
             extractRegions(peaks, duration) {
                 // Silence params
-                let minValue = 0.005;
+                let minValue = 0.0015;
                 let minSeconds = 0.5;
 
                 let length = peaks.length;
@@ -538,7 +578,7 @@
                 this.currentNote = region.data.note || '';
             },
             getDownloadURL(id, type, path) {
-                if (path !== "") {
+                if (path !== undefined && path !== "") {
                     if (path.indexOf("http") === -1) {
                         return this.baseURL + "/audio/download/" + id + "/" + type
                     } else {
@@ -569,7 +609,7 @@
         }
 
         .others-container {
-            margin-top: 20px;
+            /*margin-top: 20px;*/
             max-height: 18rem;
             overflow: auto;
         }
@@ -577,6 +617,14 @@
 
     .waveform-container {
         height: 200px;
+
+        .wave-timeline {
+            height: 20px;
+        }
+
+        .waveform {
+            height: 180px;
+        }
     }
 
 </style>
