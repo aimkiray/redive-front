@@ -6,7 +6,7 @@ module.exports = {
         const types = ['vue-modules', 'vue', 'normal-modules', 'normal'];
         types.forEach(type => addStyleResource(config.module.rule('scss').oneOf(type)))
     },
-    configureWebpack: () => {
+    configureWebpack: config => {
         if (process.env.NODE_ENV === 'production') {
             return {
                 plugins: [
@@ -20,7 +20,8 @@ module.exports = {
                 ]
             }
         }
-    }
+        config.devtool = 'source-map';
+    },
 };
 
 function addStyleResource(rule) {
