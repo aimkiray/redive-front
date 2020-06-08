@@ -94,24 +94,21 @@ $ yarn build
 测试环境为 CentOS 7，如需定制请参阅[官方文档](https://docs.docker.com/engine/install/centos/)。
 
 ```bash
-$ sudo yum install -y yum-utils
-$ sudo yum-config-manager \
-    --add-repo \
-    https://download.docker.com/linux/centos/docker-ce.repo
-$ sudo yum install docker-ce docker-ce-cli containerd.io
+$ curl -fsSL https://get.docker.com -o get-docker.sh
+$ sudo sh get-docker.sh
 $ sudo systemctl start docker
 ```
 
 使用国内的 Docker Hub 加快镜像下载，创建 daemon 的配置文件。
 
 ```bash
-$ sudo vim /etc/docker/daemon.json
+$ vim /etc/docker/daemon.json
 ```
 
 配置 daemon，通过国内的 Docker Hub 加快镜像下载。
 
 ```bash
-sudo vim /etc/docker/daemon.json
+$ vim /etc/docker/daemon.json
 ```
 
 内容如下。
@@ -129,10 +126,10 @@ sudo vim /etc/docker/daemon.json
 安装 Docker Compose（以 1.25.5 版本为例）。
 
 ```bash
-$ sudo curl -L "https://github.com/docker/compose/releases/download/1.25.5/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-$ sudo chmod +x /usr/local/bin/docker-compose
+$ curl -L "https://github.com/docker/compose/releases/download/1.25.5/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+$ chmod +x /usr/local/bin/docker-compose
 # optional
-$ sudo ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
+$ ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
 ```
 
 ### 准备 Docker 镜像（可选）
@@ -166,9 +163,9 @@ CMD ["./redive-back"]
 提前将`nginx`和`redis`等官方镜像 pull 下来备用。
 
 ```bash
-$ sudo docker pull alpine:latest
-$ sudo docker pull nginx:latest
-$ sudo docker pull redis:latest
+$ docker pull alpine:latest
+$ docker pull nginx:latest
+$ docker pull redis:latest
 ```
 
 ### 工作目录（可选）
@@ -178,7 +175,7 @@ $ sudo docker pull redis:latest
 找到之前编译的可执行文件`redive-back`，复制到工作目录，尝试构建名为`redive-back`的镜像。
 
 ```bash
-$ sudo docker build -t redive-back .
+$ docker build -t redive-back .
 ```
 
 将前端静态文件目录`dist`也复制过来。
@@ -274,7 +271,7 @@ services:
 修改文件所有者，避免一些奇奇怪怪的问题出现。
 
 ```bash
-$ sudo chown -R $USER:$USER .
+$ chown -R $USER:$USER .
 ```
 
 ### 我开动了
@@ -282,15 +279,15 @@ $ sudo chown -R $USER:$USER .
 进入工作目录或 release 解压后的 redive 目录，修改`docker-compose.yml`中的端口，`config.ini`中的用户信息。执行如下指令启动容器。
 
 ```bash
-$ sudo docker-compose build --no-cache
-$ sudo docker-compose up -d
+$ docker-compose build --no-cache
+$ docker-compose up -d
 ```
 
 停止和删除容器。
 
 ```bash
-$ sudo docker-compose stop
-$ sudo docker-compose rm
+$ docker-compose stop
+$ docker-compose rm
 ```
 
 Enjoy yourself~
@@ -383,7 +380,7 @@ ReDive 是单页面应用，路由使用 Vue Router 实现，全局数据交由 
 
 ------
 
-***注意：ReDive 仅能用于 Golang/Vue.js/English 等相关技术的学习和在法律允许范围内的使用，任何个人或集体不得使用 ReDive 进行任何违反相关法律法规的活动。***
+***注意：ReDive 仅能用于 Golang/Vue.js/Language 等相关技术的学习和在法律允许范围内的使用，任何个人或集体不得使用 ReDive 进行任何违反相关法律法规的活动。***
 
 Note: ReDive can **ONLY** be used for learning related technologies such as Golang/Vue.js/English and use within the scope permitted by law. Any individual or group **MAY NOT** use ReDive for any violation of relevant laws and regulations.
 
