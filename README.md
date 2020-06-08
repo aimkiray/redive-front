@@ -1,4 +1,6 @@
-ReDive 是一个可以管理音乐，学习嘤语的多功能复读机（CAI 不是什么高级焊工养成游戏= =），采用前后端分离架构，前端基于 Vue.js 全家桶，后端基于 Golang 编写，支持 Docker 部署。
+# Taste Guide
+
+ReDive 是一个可以管理音乐，学习嘤语的多功能复读机（cai不是什么高级焊工养成游戏= =），采用前后端分离架构，前端基于 Vue.js 全家桶，后端基于 Golang 编写，支持 Docker 部署。
 
 ## 目录
 
@@ -28,7 +30,7 @@ Demo 服务器是个土豆，不仅慢还 **404** 了 **上传/导入/更新** �
 
 波形需要等待音频完全加载，已有存档的除外。
 
-移动端没有完全适配，只是能用的程度，如有需要请等待后续开发。
+移动端没有完全适配，目前只是能用的程度，如有需要请等待后续开发。
 
 ## To Do
 
@@ -89,7 +91,7 @@ $ yarn build
 
 ### 安装 Docker
 
-先装你的 Docker CE，其他环境请看官方文档。
+测试环境为 CentOS 7，如需定制请参阅[官方文档](https://docs.docker.com/engine/install/centos/)。
 
 ```bash
 $ sudo yum install -y yum-utils
@@ -106,13 +108,20 @@ $ sudo systemctl start docker
 $ sudo vim /etc/docker/daemon.json
 ```
 
-选择 USTC 的镜像源，写入如下内容。
+配置 daemon，通过国内的 Docker Hub 加快镜像下载。
+
+```bash
+sudo vim /etc/docker/daemon.json
+```
+
+内容如下。
 
 ```json
 {
   "registry-mirrors": [
-    "https://docker.mirrors.ustc.edu.cn",
-    "https://registry.docker-cn.com"
+    "https://kohnnhik.mirror.aliyuncs.com",
+    "https://mirror.ccs.tencentyun.com",
+    "https://docker.mirrors.ustc.edu.cn"
   ]
 }
 ```
@@ -136,7 +145,7 @@ $ sudo ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
 
 > 这里提供一个通用的方法，如果你的餐桌不够大，请考虑能否吃到 Docker。
 
-新建一个空的工作目录，创建后端镜像的 Dockerfile 文件，写入如下内容。
+新建一个空的工作目录，创建后端 Dockerfile 文件，写入如下内容。
 
 ```dockerfile
 FROM alpine:latest
@@ -150,7 +159,7 @@ EXPOSE 2333
 CMD ["./redive-back"]
 ```
 
-~~`scratch` 是一个空镜像，意味着从第一层开始编写指令，Go 编写的程序常用此方法制作镜像节约空间，以适应微服务的需求。~~因缺少部分依赖，换用同样很小的`alpine linux`。
+~~基础镜像`scratch`是空的，意味着从第一层开始编写指令。Go 后端编译后生成一个二进制文件，常用此方法制作镜像节省空间。~~因缺少部分依赖，换用同样很小的`alpine linux`。
 
 提前将`nginx`和`redis`等官方镜像 pull 下来备用。
 
